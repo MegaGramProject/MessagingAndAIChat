@@ -3,45 +3,103 @@ defineProps({
 convoTitle: {
     type: String,
     required: true
+},
+convoId: {
+    type: Number,
+    required: true
+},
+selectedConvo: {
+    type: Number,
+    required: true
+},
+selectNewConvo: {
+    type: Function,
+    required: true
+},
+toggleShareChatPopup: {
+    type: Function,
+    required: true
 }
 })
 </script>
 
 <template>
-<div @click="selectConvo" :style="{width:'100%', borderRadius:'7px', cursor:'pointer', display:'flex',
+<template v-if="!isDeleted">
+<div @click="selectNewConvo(convoId)" :style="{width:'100%', borderRadius:'7px', cursor:'pointer', display:'flex',
 alignItems:'center', justifyContent:'space-between', height:'2.3em', backgroundColor: displayBackgroundColor, position:'relative'}">
-<p :style="{fontSize:'0.85em', color:'gray'}">{{convoTitle}}</p>
-<img @mouseover="toggleOptionsText" @mouseleave="toggleOptionsText" :src="threeHorizontalDots" :style="{height:'2em', width:'2em'}">
+<template v-if="!isRenaming">
+<p :style="{fontSize:'0.85em', color:'gray'}">{{convoTitleState}}</p>
+</template>
+<template v-if="isRenaming">
+<textarea v-model="convoTitleState" :style="{fontFamily:'Arial', width:'100%', height:'70%'}" @keyup.enter="toggleRenaming"></textarea>
+</template>
+<img @click="toggleOptions" @mouseover="toggleOptionsText" @mouseleave="toggleOptionsText" :src="threeHorizontalDots" :style="{height:'2em', width:'2em'}">
 <p :style="{position:'absolute', top:'-40%', left:'75%', backgroundColor:'black', color:'white', width:'5em', borderRadius:'3px',
 paddingLeft:'0.6em', fontSize:'0.77em', display: displayOptionsText}">Options</p>
+<div :style="{position:'absolute', left:'96%', top:'100%', backgroundColor:'white', borderRadius:'5px',
+display:'flex', flexDirection:'column', alignItems:'center', height:'6.4em', padding:'0.35em 0.2em', display: displayOptions,
+boxShadow: '0 4px 8px 0 rgba(0, 0, 0, 0.2)', fontSize:'0.8em'}">
+
+<div @click="toggleShareChatPopup(convoId)" class="hoverableElement" :style="{display:'flex', width:'7em', borderRadius:'5px', padding:'0.3em 0.3em'}">
+    <img :src="shareConvoIcon" :style="{height:'1.2em', width:'1.2em', objectFit:'contain', marginLeft:'0.6em'}"/>
+    <p :style="{marginLeft:'1.3em'}">Share</p>
 </div>
+<div @click="toggleRenaming" class="hoverableElement" :style="{display:'flex', width:'7em', borderRadius:'5px'}">
+    <img :src="renameConvoIcon" :style="{height:'1.2em', width:'1.2em', objectFit:'contain', marginLeft:'0.6em'}"/>
+    <p :style="{marginLeft:'1.3em'}">Rename</p>
+</div>
+<div @click="deleteConvo" class="hoverableElement" :style="{display:'flex', width:'7em', borderRadius:'5px', marginTop:'0.2em'}">
+    <img :src="removeConvoIcon" :style="{height:'1.2em', width:'1.2em', objectFit:'contain', marginLeft:'0.6em'}"/>
+    <p :style="{marginLeft:'1.3em'}">Delete</p>
+</div>
+</div>
+</div>
+</template>
 </template>
 
 
 <script>
     import threeHorizontalDots from '@/assets/images/threeHorizontalDots.png';
+    import shareConvoIcon from '@/assets/images/shareConvoIcon.png';
+    import renameConvoIcon from '@/assets/images/renameConvoIcon.png';
+    import removeConvoIcon from '@/assets/images/removeConvoIcon.png';
+    import '@/assets/styles.css';
     export default {
     data() {
         return {
             threeHorizontalDots,
-            isSelected: false,
-            optionsHovered: false
+            shareConvoIcon,
+            optionsHovered: false,
+            showOptions: false,
+            isRenaming: false,
+            convoTitleState: this.convoTitle,
+            isDeleted: false
         };
     },
     methods: {
-        selectConvo() {
-            this.isSelected= true;
-        },
         toggleOptionsText() {
             this.optionsHovered = !this.optionsHovered;
+        },
+        toggleOptions() {
+            this.showOptions = !this.showOptions;
+        },
+        toggleRenaming() {
+            this.isRenaming = !this.isRenaming;
+        },
+        deleteConvo() {
+            console.log("DELETED");
+            this.isDeleted = true;
         }
     },
     computed: {
         displayBackgroundColor() {
-            return this.isSelected ? '#ebebeb' : '';
+            return this.convoId == this.selectedConvo ? '#ebebeb' : '';
         },
         displayOptionsText() {
             return this.optionsHovered ? 'inline-block' : 'none';
+        },
+        displayOptions() {
+            return this.showOptions ? 'inline-block' : 'none';
         }
     }
 };

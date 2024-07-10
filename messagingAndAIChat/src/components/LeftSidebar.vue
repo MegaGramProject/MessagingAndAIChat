@@ -1,5 +1,15 @@
 <script setup>
 import PastConvosGroup from './PastConvosGroup.vue'
+defineProps({
+toggleLeftSidebar: {
+    type: Function,
+    required: true
+},
+toggleShareChatPopup: {
+    type: Function,
+    required: true
+}
+})
 </script>
 
 
@@ -7,7 +17,7 @@ import PastConvosGroup from './PastConvosGroup.vue'
 <div :style="{position:'fixed', width:'16em', top:'0%', left:'0%', height:'100%',
 display:'flex', flexDirection:'column', backgroundColor:'#f7f7f7', padding: '1em 0.7em', overflowY:'scroll'}">
 <div :style="{display:'flex', justifyContent:'space-between'}">
-<img @contextmenu.prevent="disableRightClick" :src="toggleSidebarIcon" :style="{cursor:'pointer', height:'2.2em', width:'2.2em',
+<img @click="toggleLeftSidebar()" @contextmenu.prevent="disableRightClick" :src="toggleSidebarIcon" :style="{cursor:'pointer', height:'2.2em', width:'2.2em',
 objectFit:'contain'}" @mouseover="onSidebarIconHover" @mouseleave="onSidebarIconHover">
 <img :src="newChatIcon" :style="{cursor:'pointer', height:'2.2em', width:'2.2em', objectFit:'contain'}"
 @mouseover="onNewChatIconHover" @mouseleave="onNewChatIconHover">
@@ -21,11 +31,19 @@ padding: '0.4em 0.4em', marginLeft:'13.5em', display: displayShowNewChatText}">N
 <br/>
 <br/>
 <br/>
-<PastConvosGroup :timeOfConvoGroup="new Date('2024-07-09')" :selectedConvo="selectedConvo"/>
-<PastConvosGroup :timeOfConvoGroup="new Date('2024-07-08')" :selectedConvo="selectedConvo"/>
-<PastConvosGroup :timeOfConvoGroup="new Date('2024-06-01')" :selectedConvo="selectedConvo"/>
-<PastConvosGroup :timeOfConvoGroup="new Date('2024-02-12')" :selectedConvo="selectedConvo"/>
-<PastConvosGroup :timeOfConvoGroup="new Date('2023-05-19')" :selectedConvo="selectedConvo"/>
+<PastConvosGroup :timeOfConvoGroup="new Date('2024-07-09')" :selectedConvo="selectedConvo" :convoTitles="[['Convo3- How to drive a car', 0]]"
+:selectNewConvo="selectNewConvo" :toggleShareChatPopup="toggleShareChatPopup"/>
+<br/>
+<br/>
+<br/>
+<PastConvosGroup :timeOfConvoGroup="new Date('2024-07-08')" :selectedConvo="selectedConvo" :convoTitles="[['Convo3- How to drive a car', 3], ['Convo2- How to horse-ride', 4], ['Convo1- How to time-travel',5]]"
+:selectNewConvo="selectNewConvo" :toggleShareChatPopup="toggleShareChatPopup"/>
+<PastConvosGroup :timeOfConvoGroup="new Date('2024-06-01')" :selectedConvo="selectedConvo" :convoTitles="[['Convo3- How to drive a car', 6], ['Convo2- How to horse-ride', 7], ['Convo1- How to time-travel',8]]"
+:selectNewConvo="selectNewConvo" :toggleShareChatPopup="toggleShareChatPopup"/>
+<PastConvosGroup :timeOfConvoGroup="new Date('2024-02-12')" :selectedConvo="selectedConvo" :convoTitles="[['Convo3- How to drive a car', 9], ['Convo2- How to horse-ride', 10], ['Convo1- How to time-travel',11]]"
+:selectNewConvo="selectNewConvo" :toggleShareChatPopup="toggleShareChatPopup"/>
+<PastConvosGroup :timeOfConvoGroup="new Date('2023-05-19')" :selectedConvo="selectedConvo" :convoTitles="[['Convo3- How to drive a car', 12], ['Convo2- How to horse-ride', 13], ['Convo1- How to time-travel',14]]"
+:selectNewConvo="selectNewConvo" :toggleShareChatPopup="toggleShareChatPopup"/>
 </div>
 </template>
 
@@ -40,7 +58,7 @@ data() {
         newChatIcon,
         showCloseSidebarText: false,
         showNewChatText: false,
-        selectedConvo: 1,
+        selectedConvo: 0,
     };
 },
 
@@ -54,6 +72,9 @@ methods: {
     onNewChatIconHover() {
         this.showNewChatText = !this.showNewChatText;
     },
+    selectNewConvo(convoId) {
+        this.selectedConvo = convoId;
+    }
 },
 
 computed: {

@@ -10,15 +10,27 @@ defineProps({
     selectedConvo: {
         type: Number,
         required: true
-    }
+    },
+    convoTitles: {
+        type: Array,
+        required: true
+    },
+    selectNewConvo: {
+        type: Function,
+        required: true
+    },
+    toggleShareChatPopup: {
+    type: Function,
+    required: true
+}
 });
 </script>
 
 <template>
 <p :style="{fontSize:'0.78em', color:'gray', fontWeight:'500'}">{{formattedDate}}</p>
-<PastConvo :convoTitle="'Convo3- How to drive a car'" />
-<PastConvo :convoTitle="'Convo2- How to horse-ride'" />
-<PastConvo :convoTitle="'Convo1- How to time-travel'" />
+<template v-for="(title, index) in convoTitles" :key="index">
+    <PastConvo :convoTitle="title[0]" :convoId="title[1]" :selectedConvo="selectedConvo" :selectNewConvo="selectNewConvo" :toggleShareChatPopup="toggleShareChatPopup"/>
+</template>
 <br/>
 </template>
 
