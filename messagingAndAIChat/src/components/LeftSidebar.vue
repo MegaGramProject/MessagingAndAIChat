@@ -8,6 +8,18 @@ toggleLeftSidebar: {
 toggleShareChatPopup: {
     type: Function,
     required: true
+},
+selectedConvo: {
+    type: Number,
+    required: true
+},
+selectNewConvo: {
+    type: Function,
+    required: true
+},
+createNewConvo: {
+    type: Function,
+    required: true
 }
 })
 </script>
@@ -19,7 +31,7 @@ display:'flex', flexDirection:'column', backgroundColor:'#f7f7f7', padding: '1em
 <div :style="{display:'flex', justifyContent:'space-between'}">
 <img @click="toggleLeftSidebar()" @contextmenu.prevent="disableRightClick" :src="toggleSidebarIcon" :style="{cursor:'pointer', height:'2.2em', width:'2.2em',
 objectFit:'contain'}" @mouseover="onSidebarIconHover" @mouseleave="onSidebarIconHover">
-<img :src="newChatIcon" :style="{cursor:'pointer', height:'2.2em', width:'2.2em', objectFit:'contain'}"
+<img @click="createNewConvo()" :src="newChatIcon" :style="{cursor:'pointer', height:'2.2em', width:'2.2em', objectFit:'contain'}"
 @mouseover="onNewChatIconHover" @mouseleave="onNewChatIconHover">
 </div>
 <div @contextmenu.prevent="disableRightClick" :style="{display:'flex', justifyContent:'space-between', marginTop:'0.4em'}">
@@ -29,7 +41,7 @@ padding: '0.4em 0.6em', display: displayShowCloseSidebarText}">Close sidebar</p>
 padding: '0.4em 0.4em', marginLeft:'13.5em', display: displayShowNewChatText}">New chat</p>
 </div>
 
-<div class="hoverableElement" :style="{display:'flex', width:'100%', borderRadius:'8px', height:'3.4em', alignItems:'center', cursor:'pointer'}">
+<div @click="createNewConvo()" class="hoverableElement" :style="{display:'flex', width:'100%', borderRadius:'8px', height:'3.4em', alignItems:'center', cursor:'pointer'}">
 <img :src="chatgptIcon" :style="{height:'2.4em', width:'2.4em', objectFit:'contain'}"/>
 <p :style="{marginLeft:'1em'}">MegAI</p>
 </div>
@@ -66,7 +78,6 @@ data() {
         newChatIcon,
         showCloseSidebarText: false,
         showNewChatText: false,
-        selectedConvo: 0,
     };
 },
 
@@ -79,9 +90,6 @@ methods: {
     },
     onNewChatIconHover() {
         this.showNewChatText = !this.showNewChatText;
-    },
-    selectNewConvo(convoId) {
-        this.selectedConvo = convoId;
     }
 },
 

@@ -1,41 +1,42 @@
 <script setup>
 //import { useCounterStore } from './stores/counter.js';
 import LeftSidebar from './components/LeftSidebar.vue';
-//import Messages from './components/Messages.vue';
+import Messages from './components/Messages.vue';
+import MegagramAIDropdown from './components/MegagramAIDropdown.vue';
 import PublicLinkCreated from './components/PublicLinkCreated.vue';
 import ShareChat from './components/ShareChat.vue';
-import MegagramAIDropdown from './components/MegagramAIDropdown.vue';
 </script>
 
 <template>
   <template v-if="showLeftSidebar">
     <div :style="{opacity:backgroundOpacity, pointerEvents:backgroundPointerEvents}">
-    <LeftSidebar :toggleLeftSidebar="toggleLeftSidebar" :toggleShareChatPopup="toggleShareChatPopup"/>
+    <LeftSidebar :toggleLeftSidebar="toggleLeftSidebar" :toggleShareChatPopup="toggleShareChatPopup" :selectedConvo="selectedConvo"
+    :selectNewConvo="selectNewConvo" :createNewConvo="createNewConvo"/>
+    </div>
     <div @click="toggleMegagramAIDropdown" class="hoverableElement" :style="{backgroundColor:'white', display:'flex', alignItems:'center', justifyContent:'center', gap:'1em',
-      borderRadius:'5px', border:'none', position:'absolute', top:'2%', left:'19%', cursor:'pointer'}">
+      borderRadius:'5px', border:'none', position:'absolute', top:'2%', left:'16%', cursor:'pointer'}">
         <span :style="{color:'gray', fontWeight:'semibold', fontSize:'1.4em'}">Megagram AI</span>
         <img :src="dropdownV" :style="{height:'1em', width:'1em'}"/>
     </div>
-    </div>
-    <img :src="exitIcon" :style="{height:'3em', width:'3em', position:'absolute', left:'95%', top:'1%', cursor:'pointer'}"/>
+
+    <img :src="exitIcon" :style="{height:'2em', width:'2em', position:'absolute', left:'95%', top:'2%', cursor:'pointer'}"/>
   </template>
   <template v-if="!showLeftSidebar">
     <div :style="{display:'flex', position:'absolute', top:'2%', left:'1%', opacity:backgroundOpacity, pointerEvents:backgroundPointerEvents}">
       <img @click="toggleLeftSidebar" @mouseover="toggleOpenSidebarText" @mouseleave="toggleOpenSidebarText" :src="toggleLeftSidebarIcon" :style="{height:'3em', width:'3em', cursor:'pointer'}"/>
-      <img @mouseover="toggleNewChatText" @mouseleave="toggleNewChatText" :src="newChatIcon2" :style="{height:'3em', width:'3em', cursor:'pointer', marginLeft:'1em'}"/>
+      <img @click="createNewConvo()" @mouseover="toggleNewChatText" @mouseleave="toggleNewChatText" :src="newChatIcon2" :style="{height:'3em', width:'3em', cursor:'pointer', marginLeft:'1em'}"/>
+    </div>
       <div @click="toggleMegagramAIDropdown" class="hoverableElement" :style="{backgroundColor:'white', display:'flex', alignItems:'center', justifyContent:'center', marginLeft:'2.7em', gap:'1em',
-      borderRadius:'5px', border:'none', cursor:'pointer'}">
+      borderRadius:'5px', border:'none', cursor:'pointer', position:'absolute', left:'7%', top:'2%'}">
         <span :style="{color:'gray', fontWeight:'semibold', fontSize:'1.6em'}">Megagram AI</span>
         <img :src="dropdownV" :style="{height:'1em', width:'1em'}"/>
       </div>
-      <div :style="{position:'relative'}">
-        <p :style="{color:'white', backgroundColor:'black', position:'absolute', left:'-19em', top:'4.5em', width:'8em',
+    <p :style="{color:'white', backgroundColor:'black', position:'absolute', left:'1%', top:'8%', width:'8em',
         borderRadius:'5px', paddingLeft:'0.6em', display: displayOpenSidebarText}">Open sidebar</p>
-        <p :style="{color:'white', backgroundColor:'black', position:'absolute', left:'-15em', top:'4.5em', width:'6em',
+    <p :style="{color:'white', backgroundColor:'black', position:'absolute', left:'5.2%', top:'8%', width:'6em',
         borderRadius:'5px', paddingLeft:'0.6em', display: displayNewChatText}">New chat</p>
-      </div>
-    </div>
-    <img :src="exitIcon" :style="{height:'3em', width:'3em', position:'absolute', left:'95%', top:'1%', cursor:'pointer'}"/>
+
+    <img :src="exitIcon" :style="{height:'2em', width:'2em', position:'absolute', left:'95%', top:'2%', cursor:'pointer'}"/>
   </template>
   <template v-if="showShareChatPopup">
   <ShareChat :convoId="shareChatPopupConvoId" :toggleShareChatPopup="toggleShareChatPopup" :togglePublicLinkCreatedPopup="togglePublicLinkCreatedPopup"/>
@@ -49,29 +50,49 @@ import MegagramAIDropdown from './components/MegagramAIDropdown.vue';
   <MegagramAIDropdown :toggleMegagramAIDropdown="toggleMegagramAIDropdown" :toggleTemporaryChat="toggleTemporaryChat" :isTemporary="temporaryChatMode"/>
   </template>
 
-  <div :style="{position:'absolute', left:'20%', top:'83%', width:'60%', height:'7%', borderStyle:'solid', display:'flex',
-  justifyContent:'start', alignItems:'center', backgroundColor:'#f7f7f7', borderRadius:'2em'}">
-    <img :src="attachmentIcon" :style="{height:'3em', width:'3em', objectFit:'contain', cursor:'pointer', marginLeft:'1em'}"/>
-    <textarea @input="updateCanSendMessage" v-model="inputText" placeholder="Message MegAI" :style="{fontFamily:'Arial', height:'100%', fontSize:'1.5em', padding:'1em 1em',
-    outline:'none', border:'none', backgroundColor:'#f7f7f7', width:'87%', padding:'0.6em 0.3em'}"/>
+  <Messages :messages="messages" :setInput="setInput"/>
+
+  <div :style="{position:'absolute', left:'24%', top:'83%', width:'55%', height:'7%', borderStyle:'solid', display:'flex',
+  justifyContent:'start', alignItems:'center', backgroundColor: inputDivAndFieldBackground, borderRadius:'2em'}">
+    <template v-if="!temporaryChatMode">
+      <img :src="attachmentIcon" :style="{height:'3em', width:'3em', objectFit:'contain', cursor:'pointer', marginLeft:'1em'}"/>
+    </template>
+    <template v-if="temporaryChatMode">
+      <img :src="whiteAttachmentIcon" :style="{height:'2.3em', width:'2.3em', objectFit:'contain', cursor:'pointer', marginLeft:'1em'}"/>
+    </template>
+    <textarea ref="inputField" @input="updateCanSendMessage" v-model="inputText" placeholder="Message MegAI" :style="{fontFamily:'Arial', height:'100%', fontSize:'1.25em', padding:'1em 1em',
+    outline:'none', border:'none', backgroundColor: inputDivAndFieldBackground, width:'87%', padding:'1em 0.5em', color: inputFieldTextColor}"/>
     <template v-if="!canSendMessage">
       <img :src="sendMessageIcon1" :style="{height:'3em', width:'3em', position:'absolute', left:'95%', objectFit:'contain'}"/>
     </template>
     <template v-if="canSendMessage">
-      <img :src="sendMessageIcon2" :style="{height:'3em', width:'3em', position:'absolute', left:'95%', objectFit:'contain', cursor:'pointer'}"/>
+      <template v-if="!temporaryChatMode">
+        <img @click="sendMessage()" :src="sendMessageIcon2" :style="{height:'3em', width:'3em', position:'absolute', left:'95%', objectFit:'contain', cursor:'pointer'}"/>
+      </template>
+      <template v-if="temporaryChatMode">
+        <img @click="sendMessage()" :src="whiteSendMessageIcon2" :style="{height:'3em', width:'3em', position:'absolute', left:'95%', objectFit:'contain', cursor:'pointer'}"/>
+      </template>
     </template>
+  </div>
+
+  <div v-if="temporaryChatMode" :style="{display:'flex', gap:'0.4em', position:'absolute', left:'47%', top:'2.3%', alignItems:'center'}">
+    <img :src="temporaryChatIcon" :style="{height:'1.6em', width:'1.6em', objectFit:'contain'}"/>
+    <p :style="{fontSize:'1.2em', fontWeight:'semibold'}">Temporary Chat</p>
   </div>
   
 </template>
 
 <script>
-  import dropdownV from '@/assets/images/dropdownV.png';
+  import attachmentIcon from '@/assets/images/attachmentIcon.png';
+import dropdownV from '@/assets/images/dropdownV.png';
 import exitIcon from '@/assets/images/exitIcon.png';
 import newChatIcon2 from '@/assets/images/newChatIcon2.png';
-import toggleLeftSidebarIcon from '@/assets/images/toggleSidebarIcon.png';
-import attachmentIcon from '@/assets/images/attachmentIcon.png';
 import sendMessageIcon1 from '@/assets/images/sendMessageIcon1.png';
 import sendMessageIcon2 from '@/assets/images/sendMessageIcon2.png';
+import toggleLeftSidebarIcon from '@/assets/images/toggleSidebarIcon.png';
+import whiteAttachmentIcon from '@/assets/images/whiteAttachmentIcon.png';
+import whiteSendMessageIcon2 from '@/assets/images/whiteSendMessageIcon2.png';
+import temporaryChatIcon from '@/assets/images/temporaryChatIcon.png';
 import '@/assets/styles.css';
   export default {
   data() {
@@ -87,7 +108,9 @@ import '@/assets/styles.css';
           showMegagramAIDropdown: false,
           temporaryChatMode: false,
           inputText: "",
-          canSendMessage: false
+          canSendMessage: false,
+          selectedConvo: 0,
+          messages: [['user', 'Hi, how are you?'], ['AI', 'I\'m fine, thanks for asking!'], ['user', 'Well that\'s splendid innit?'], ['user', 'H'], ['AI', 'bye lolaskdmnsanjsadnsajdnsajdnjasdnsajdnjsadnjsadnajskdcf hjsaddf casjhkd casjkhd cjkas cjksa cjkasc jka aksj ajsk ckjasc ajks jkas kajs ckjas cas jas cjksa cjksndjksandjksandjkasn dcjska cjksxac akjscask ckasjcjkas nca']]
       };
   },
   methods: {
@@ -128,11 +151,30 @@ import '@/assets/styles.css';
     },
     toggleTemporaryChat(){
       this.temporaryChatMode = !this.temporaryChatMode;
+      this.messages = [];
     },
     updateCanSendMessage() {
       this.canSendMessage = this.inputText.length>0;
+    },
+    selectNewConvo(convoId) {
+        this.selectedConvo = convoId;
+    },
+    createNewConvo() {
+      if(this.selectedConvo!== -3.14) {
+        console.log("A");
+        this.messages = [];
+        this.selectedConvo = -3.14;
+        this.$refs.inputField.focus();
+      }
+    },
+    sendMessage() {
+      this.messages.push(['user', this.inputText]);
+      this.inputText = "";
+    },
+    setInput(inputText){
+      this.messages.push(['user', inputText]);
+      this.inputText = "";
     }
-
   },
   computed: {
     displayOpenSidebarText() {
@@ -147,6 +189,12 @@ import '@/assets/styles.css';
     backgroundOpacity() {
       return this.showShareChatPopup || this.showPublicLinkCreatedPopup || this.temporaryChatMode ? '0.25' : '1'
     },
+    inputDivAndFieldBackground() {
+      return this.temporaryChatMode ? 'black' : '#f7f7f7'
+    },
+    inputFieldTextColor() {
+      return this.temporaryChatMode ? 'white' : 'black';
+    }
   }
 
   };
