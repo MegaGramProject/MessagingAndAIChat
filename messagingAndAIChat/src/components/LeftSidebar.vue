@@ -28,6 +28,12 @@ padding: '0.4em 0.6em', display: displayShowCloseSidebarText}">Close sidebar</p>
 <p :style="{backgroundColor:'black', color:'white', width:'43%', fontSize:'0.77em', borderRadius:'4px', height:'2.37em',
 padding: '0.4em 0.4em', marginLeft:'13.5em', display: displayShowNewChatText}">New chat</p>
 </div>
+
+<div class="hoverableElement" :style="{display:'flex', width:'100%', borderRadius:'8px', height:'3.4em', alignItems:'center', cursor:'pointer'}">
+<img :src="chatgptIcon" :style="{height:'2.4em', width:'2.4em', objectFit:'contain'}"/>
+<p :style="{marginLeft:'1em'}">MegAI</p>
+</div>
+
 <br/>
 <br/>
 <br/>
@@ -51,6 +57,8 @@ padding: '0.4em 0.4em', marginLeft:'13.5em', display: displayShowNewChatText}">N
 <script>
 import toggleSidebarIcon from '@/assets/images/toggleSidebarIcon.png';
 import newChatIcon from '@/assets/images/newChatIcon.png';
+import chatgptIcon from '@/assets/images/chatgptIcon.png';
+import '@/assets/styles.css';
 export default {
 data() {
     return {

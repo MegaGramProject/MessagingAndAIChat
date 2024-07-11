@@ -25,7 +25,7 @@ toggleShareChatPopup: {
 
 <template>
 <template v-if="!isDeleted">
-<div @click="selectNewConvo(convoId)" :style="{width:'100%', borderRadius:'7px', cursor:'pointer', display:'flex',
+<div class="hoverableElement" @click="selectNewConvo(convoId)" :style="{width:'100%', borderRadius:'7px', cursor:'pointer', display:'flex',
 alignItems:'center', justifyContent:'space-between', height:'2.3em', backgroundColor: displayBackgroundColor, position:'relative'}">
 <template v-if="!isRenaming">
 <p :style="{fontSize:'0.85em', color:'gray'}">{{convoTitleState}}</p>
@@ -49,7 +49,7 @@ boxShadow: '0 4px 8px 0 rgba(0, 0, 0, 0.2)', fontSize:'0.8em'}">
     <p :style="{marginLeft:'1.3em'}">Rename</p>
 </div>
 <div @click="deleteConvo" class="hoverableElement" :style="{display:'flex', width:'7em', borderRadius:'5px', marginTop:'0.2em'}">
-    <img :src="removeConvoIcon" :style="{height:'1.2em', width:'1.2em', objectFit:'contain', marginLeft:'0.6em'}"/>
+    <img :src="removeConvoIcon" :style="{height:'1.2em', width:'1.2em', objectFit:'contain', marginLeft:'0.6em', marginTop:'0.2em'}"/>
     <p :style="{marginLeft:'1.3em'}">Delete</p>
 </div>
 </div>
