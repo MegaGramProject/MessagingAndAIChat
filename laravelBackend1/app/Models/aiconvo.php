@@ -8,4 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 class aiconvo extends Model
 {
     use HasFactory;
+    protected $table = 'aiconvos';
+    protected $primaryKey = 'convoid';
+    protected $keyType = 'string';
+    protected $fillable = [
+        'convoid', 'convotitle', 'username',
+    ];
+
+    public $timestamps = false;
 }

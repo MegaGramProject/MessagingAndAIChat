@@ -12,11 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('aiconvos', function (Blueprint $table) {
-            $table->id();
             $table->string('convoid');
             $table->string('convotitle');
             $table->string('username');
-            $table->timestamps();
         });
     }
 

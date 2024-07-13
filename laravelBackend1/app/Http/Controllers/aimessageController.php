@@ -40,6 +40,17 @@ class aimessageController extends Controller
         return response()->json($message, 200);
     }
 
+    public function showByConvoId($convoid)
+    {
+        $messages = aimessage::where('convoid', $convoid)->get();
+        
+        if ($messages->isEmpty()) {
+            return response()->json(['message' => 'Messages not found'], 404);
+        }
+
+        return response()->json($messages, 200);
+    }
+
     /**
      * Update the specified resource in storage.
      */
@@ -59,9 +70,9 @@ class aimessageController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy($messageid)
     {
-        $message = aimessage::find($id);
+        $message = aimessage::find($messageid);
 
         if (is_null($message)) {
             return response()->json(['message' => 'Message not found'], 404);
