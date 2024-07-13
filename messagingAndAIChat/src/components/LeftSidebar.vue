@@ -1,5 +1,5 @@
 <script setup>
-import PastConvosGroup from './PastConvosGroup.vue'
+import PastConvosGroup from './PastConvosGroup.vue';
 defineProps({
 toggleLeftSidebar: {
     type: Function,
@@ -10,7 +10,7 @@ toggleShareChatPopup: {
     required: true
 },
 selectedConvo: {
-    type: Number,
+    type: String,
     required: true
 },
 selectNewConvo: {
@@ -19,6 +19,18 @@ selectNewConvo: {
 },
 createNewConvo: {
     type: Function,
+    required: true
+},
+username: {
+    type: String,
+    required: true
+},
+newConvos: {
+    type: Array,
+    required: true
+},
+uniqueKey: {
+    type: String,
     required: true
 }
 })
@@ -49,27 +61,53 @@ padding: '0.4em 0.4em', marginLeft:'13.5em', display: displayShowNewChatText}">N
 <br/>
 <br/>
 <br/>
-<PastConvosGroup :timeOfConvoGroup="new Date('2024-07-09')" :selectedConvo="selectedConvo" :convoTitles="[['Convo3- How to drive a car', 0]]"
-:selectNewConvo="selectNewConvo" :toggleShareChatPopup="toggleShareChatPopup"/>
-<br/>
-<br/>
-<br/>
-<PastConvosGroup :timeOfConvoGroup="new Date('2024-07-08')" :selectedConvo="selectedConvo" :convoTitles="[['Convo3- How to drive a car', 3], ['Convo2- How to horse-ride', 4], ['Convo1- How to time-travel',5]]"
-:selectNewConvo="selectNewConvo" :toggleShareChatPopup="toggleShareChatPopup"/>
-<PastConvosGroup :timeOfConvoGroup="new Date('2024-06-01')" :selectedConvo="selectedConvo" :convoTitles="[['Convo3- How to drive a car', 6], ['Convo2- How to horse-ride', 7], ['Convo1- How to time-travel',8]]"
-:selectNewConvo="selectNewConvo" :toggleShareChatPopup="toggleShareChatPopup"/>
-<PastConvosGroup :timeOfConvoGroup="new Date('2024-02-12')" :selectedConvo="selectedConvo" :convoTitles="[['Convo3- How to drive a car', 9], ['Convo2- How to horse-ride', 10], ['Convo1- How to time-travel',11]]"
-:selectNewConvo="selectNewConvo" :toggleShareChatPopup="toggleShareChatPopup"/>
-<PastConvosGroup :timeOfConvoGroup="new Date('2023-05-19')" :selectedConvo="selectedConvo" :convoTitles="[['Convo3- How to drive a car', 12], ['Convo2- How to horse-ride', 13], ['Convo1- How to time-travel',14]]"
-:selectNewConvo="selectNewConvo" :toggleShareChatPopup="toggleShareChatPopup"/>
+
+
+<template v-if="newConvos.length > 0" :key="uniqueKey">
+    <PastConvosGroup :timeOfConvoGroup="newConvos[0][2]" :selectedConvo="selectedConvo" :convoTitles="[...newConvos, ...convosToday]"
+    :selectNewConvo="selectNewConvo" :toggleShareChatPopup="toggleShareChatPopup"/>
+</template>
+
+<template v-if="convosToday.length>0 && newConvos.length==0">
+    <PastConvosGroup :timeOfConvoGroup="new Date(convosToday[0][2])" :selectedConvo="selectedConvo" :convoTitles="convosToday"
+    :selectNewConvo="selectNewConvo" :toggleShareChatPopup="toggleShareChatPopup"/>
+</template>
+
+<template v-if="convosYesterday.length>0">
+    <PastConvosGroup :timeOfConvoGroup="new Date(convosYesterday[0][2])" :selectedConvo="selectedConvo" :convoTitles="convosYesterday" :selectNewConvo="selectNewConvo"
+    :toggleShareChatPopup="toggleShareChatPopup"/>
+</template>
+
+<template v-if="convosThisWeek.length>0">
+    <PastConvosGroup :timeOfConvoGroup="new Date(convosThisWeek[0][2])" :selectedConvo="selectedConvo" :convoTitles="convosThisWeek" :selectNewConvo="selectNewConvo"
+    :toggleShareChatPopup="toggleShareChatPopup"/>
+</template>
+
+<template v-if="convosThisMonth.length>0">
+    <PastConvosGroup :timeOfConvoGroup="new Date(convosThisMonth[0][2])" :selectedConvo="selectedConvo" :convoTitles="convosThisMonth" :selectNewConvo="selectNewConvo"
+    :toggleShareChatPopup="toggleShareChatPopup"/>
+</template>
+
+<template v-if="convosThisYear.length>0">
+    <PastConvosGroup :timeOfConvoGroup="new Date(convosThisYear[0][2])" :selectedConvo="selectedConvo" :convoTitles="convosThisYear" :selectNewConvo="selectNewConvo"
+    :toggleShareChatPopup="toggleShareChatPopup"/>
+</template>
+
+<template v-if="convosBeforeThisYear.length>0">
+    <PastConvosGroup :timeOfConvoGroup="new Date(convosBeforeThisYear[0][2])" :selectedConvo="selectedConvo" :convoTitles="convosBeforeThisYear" :selectNewConvo="selectNewConvo"
+    :toggleShareChatPopup="toggleShareChatPopup"/>
+</template>
+
+
+
 </div>
 </template>
 
 
 <script>
-import toggleSidebarIcon from '@/assets/images/toggleSidebarIcon.png';
-import newChatIcon from '@/assets/images/newChatIcon.png';
 import chatgptIcon from '@/assets/images/chatgptIcon.png';
+import newChatIcon from '@/assets/images/newChatIcon.png';
+import toggleSidebarIcon from '@/assets/images/toggleSidebarIcon.png';
 import '@/assets/styles.css';
 export default {
 data() {
@@ -78,8 +116,19 @@ data() {
         newChatIcon,
         showCloseSidebarText: false,
         showNewChatText: false,
+        convosToday: [],
+        convosYesterday: [],
+        convosThisWeek: [],
+        convosThisMonth: [],
+        convosThisYear: [],
+        convosBeforeThisYear: [],
     };
 },
+
+mounted() {
+    this.fetchAIConvos(this.username);
+},
+
 
 methods: {
     disableRightClick(event) {
@@ -90,6 +139,68 @@ methods: {
     },
     onNewChatIconHover() {
         this.showNewChatText = !this.showNewChatText;
+    },
+    formattedDate(givenDate) {
+        const today = new Date();
+
+        if (givenDate.getTime() >= today.getTime()) {
+            return "Today";
+        }
+
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 1);
+        if (givenDate.getTime() === yesterday.getTime()) {
+            return "Yesterday";
+        }
+
+        const startOfWeek = new Date(today);
+        startOfWeek.setDate(today.getDate() - today.getDay());
+        if (givenDate >= startOfWeek && givenDate < today) {
+            return "This week";
+        }
+
+        const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        if (givenDate >= startOfMonth && givenDate < today) {
+            return "This month";
+        }
+
+        const startOfYear = new Date(today.getFullYear(), 0, 1);
+        if (givenDate >= startOfYear && givenDate < today) {
+            return "This year";
+        }
+
+
+    return "Before this year";
+    },
+
+    async fetchAIConvos(username){
+        const response = await fetch('http://localhost:8006/getAIConvos/'+username);
+        if(!response.ok) {
+            throw new Error('Network response not ok');
+        }
+        const aiConvos = await response.json();
+        aiConvos.sort((a, b) => new Date(b[2]) - new Date(a[2]));
+        for(let convo of aiConvos) {
+            const formattedDate = this.formattedDate(new Date(convo[2]));
+            if(formattedDate==="Today") {
+                this.convosToday.push(convo);
+            }
+            else if(formattedDate==="Yesterday") {
+                this.convosYesterday.push(convo);
+            }
+            else if(formattedDate==="This week") {
+                this.convosThisWeek.push(convo);
+            }
+            else if(formattedDate==="This month") {
+                this.convosThisMonth.push(convo);
+            }
+            else if(formattedDate==="This year") {
+                this.convosThisYear.push(convo);
+            }
+            else {
+                this.convosBeforeThisYear.push(convo);
+            }
+        }
     }
 },
 
@@ -100,8 +211,6 @@ computed: {
     displayShowNewChatText(){
         return this.showNewChatText ? 'inline-block' : 'none';
     }
-
 }
-
 };
 </script>

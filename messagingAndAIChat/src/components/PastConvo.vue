@@ -5,11 +5,11 @@ convoTitle: {
     required: true
 },
 convoId: {
-    type: Number,
+    type: String,
     required: true
 },
 selectedConvo: {
-    type: Number,
+    type: String,
     required: true
 },
 selectNewConvo: {
@@ -19,7 +19,7 @@ selectNewConvo: {
 toggleShareChatPopup: {
     type: Function,
     required: true
-}
+},
 })
 </script>
 
@@ -87,7 +87,6 @@ boxShadow: '0 4px 8px 0 rgba(0, 0, 0, 0.2)', fontSize:'0.8em'}">
             this.isRenaming = !this.isRenaming;
         },
         deleteConvo() {
-            console.log("DELETED");
             this.isDeleted = true;
         }
     },

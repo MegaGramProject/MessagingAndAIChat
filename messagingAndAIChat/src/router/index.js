@@ -1,14 +1,15 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import App from '../App.vue'
+import { createRouter, createWebHistory } from 'vue-router';
+import App from '../App.vue';
+import NotFound from '../NotFound.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      path: '/',
+      path: '/aiChat/:username',
       name: 'app',
       component: App
-    }
+    },
   ]
 })
 

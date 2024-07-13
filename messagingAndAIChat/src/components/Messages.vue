@@ -23,7 +23,7 @@ setInput: {
 
 <div v-if="!messagesExist" :style="{backgroundColor:'white', position:'absolute', display:'flex',
 flexDirection:'column', left:'25%', top:'4%', width:'54%', height:'69%', justifyContent:'center', alignItems:'center'}">
-    <img :src="chatgptIcon" :style="{height:'6em', width:'6em', objectFit:'contain'}"/>
+    <img :src="chatgptIcon" :style="{height:'6em', width:'6em', objectFit:'contain', pointerEvents:'none'}"/>
     <br/>
     <div :style="{display:'flex', gap:'0.6em'}">
         <div @click="setInput('Design a fun coding game')" class="hoverableElement" :style="{display:'flex', flexDirection:'column', alignItems:'start', justifyContent:'start', width:'9em',

@@ -8,7 +8,7 @@ defineProps({
         required: true
     },
     selectedConvo: {
-        type: Number,
+        type: String,
         required: true
     },
     convoTitles: {
@@ -20,16 +20,16 @@ defineProps({
         required: true
     },
     toggleShareChatPopup: {
-    type: Function,
-    required: true
-}
+        type: Function,
+        required: true
+    }
 });
 </script>
 
 <template>
 <p :style="{fontSize:'0.78em', color:'gray', fontWeight:'500'}">{{formattedDate}}</p>
 <template v-for="(title, index) in convoTitles" :key="index">
-    <PastConvo :convoTitle="title[0]" :convoId="title[1]" :selectedConvo="selectedConvo" :selectNewConvo="selectNewConvo" :toggleShareChatPopup="toggleShareChatPopup"/>
+    <PastConvo :convoTitle="title[1]" :convoId="title[0]" :selectedConvo="selectedConvo" :selectNewConvo="selectNewConvo" :toggleShareChatPopup="toggleShareChatPopup"/>
 </template>
 <br/>
 </template>
@@ -42,9 +42,8 @@ computed: {
         const givenDate = this.timeOfConvoGroup;
 
         today.setHours(0, 0, 0, 0);
-        givenDate.setHours(0, 0, 0, 0);
 
-        if (givenDate.getTime() === today.getTime()) {
+        if (givenDate.getTime() >= today.getTime()) {
             return "Today";
         }
 

@@ -1,5 +1,4 @@
 <script setup>
-//import { useCounterStore } from './stores/counter.js';
 import LeftSidebar from './components/LeftSidebar.vue';
 import Messages from './components/Messages.vue';
 import MegagramAIDropdown from './components/MegagramAIDropdown.vue';
@@ -11,10 +10,10 @@ import ShareChat from './components/ShareChat.vue';
   <template v-if="showLeftSidebar">
     <div :style="{opacity:backgroundOpacity, pointerEvents:backgroundPointerEvents}">
     <LeftSidebar :toggleLeftSidebar="toggleLeftSidebar" :toggleShareChatPopup="toggleShareChatPopup" :selectedConvo="selectedConvo"
-    :selectNewConvo="selectNewConvo" :createNewConvo="createNewConvo"/>
+    :selectNewConvo="selectNewConvo" :createNewConvo="createNewConvo" :username="username" :newConvos="newConvos" :uniqueKey="leftSidebarUniqueKey"/>
     </div>
     <div @click="toggleMegagramAIDropdown" class="hoverableElement" :style="{backgroundColor:'white', display:'flex', alignItems:'center', justifyContent:'center', gap:'1em',
-      borderRadius:'5px', border:'none', position:'absolute', top:'2%', left:'16%', cursor:'pointer'}">
+      borderRadius:'5px', border:'none', position:'absolute', top:'2%', left:'16%', cursor:'pointer', zIndex:'10'}">
         <span :style="{color:'gray', fontWeight:'semibold', fontSize:'1.4em'}">Megagram AI</span>
         <img :src="dropdownV" :style="{height:'1em', width:'1em'}"/>
     </div>
@@ -27,7 +26,7 @@ import ShareChat from './components/ShareChat.vue';
       <img @click="createNewConvo()" @mouseover="toggleNewChatText" @mouseleave="toggleNewChatText" :src="newChatIcon2" :style="{height:'3em', width:'3em', cursor:'pointer', marginLeft:'1em'}"/>
     </div>
       <div @click="toggleMegagramAIDropdown" class="hoverableElement" :style="{backgroundColor:'white', display:'flex', alignItems:'center', justifyContent:'center', marginLeft:'2.7em', gap:'1em',
-      borderRadius:'5px', border:'none', cursor:'pointer', position:'absolute', left:'7%', top:'2%'}">
+      borderRadius:'5px', border:'none', cursor:'pointer', position:'absolute', left:'7%', top:'2%', zIndex:'10'}">
         <span :style="{color:'gray', fontWeight:'semibold', fontSize:'1.6em'}">Megagram AI</span>
         <img :src="dropdownV" :style="{height:'1em', width:'1em'}"/>
       </div>
@@ -54,11 +53,12 @@ import ShareChat from './components/ShareChat.vue';
 
   <div :style="{position:'absolute', left:'24%', top:'83%', width:'55%', height:'7%', borderStyle:'solid', display:'flex',
   justifyContent:'start', alignItems:'center', backgroundColor: inputDivAndFieldBackground, borderRadius:'2em'}">
+  <input type="file" ref="fileInput" @change="handleFileChange" style="display: none;" />
     <template v-if="!temporaryChatMode">
-      <img :src="attachmentIcon" :style="{height:'3em', width:'3em', objectFit:'contain', cursor:'pointer', marginLeft:'1em'}"/>
+      <img @click="triggerFileInput" :src="attachmentIcon" :style="{height:'3em', width:'3em', objectFit:'contain', cursor:'pointer', marginLeft:'1em'}"/>
     </template>
     <template v-if="temporaryChatMode">
-      <img :src="whiteAttachmentIcon" :style="{height:'2.3em', width:'2.3em', objectFit:'contain', cursor:'pointer', marginLeft:'1em'}"/>
+      <img @click="triggerFileInput" :src="whiteAttachmentIcon" :style="{height:'2.3em', width:'2.3em', objectFit:'contain', cursor:'pointer', marginLeft:'1em'}"/>
     </template>
     <textarea ref="inputField" @input="updateCanSendMessage" v-model="inputText" placeholder="Message MegAI" :style="{fontFamily:'Arial', height:'100%', fontSize:'1.25em', padding:'1em 1em',
     outline:'none', border:'none', backgroundColor: inputDivAndFieldBackground, width:'87%', padding:'1em 0.5em', color: inputFieldTextColor}"/>
@@ -98,7 +98,6 @@ import '@/assets/styles.css';
   data() {
       return {
           showLeftSidebar: false,
-          toggleLeftSidebarIcon,
           showOpenSidebarText: false,
           showNewChatText: false,
           showShareChatPopup: false,
@@ -109,10 +108,14 @@ import '@/assets/styles.css';
           temporaryChatMode: false,
           inputText: "",
           canSendMessage: false,
-          selectedConvo: 0,
-          messages: [['user', 'Hi, how are you?'], ['AI', 'I\'m fine, thanks for asking!'], ['user', 'Well that\'s splendid innit?'], ['user', 'H'], ['AI', 'bye lolaskdmnsanjsadnsajdnsajdnjasdnsajdnjsadnjsadnajskdcf hjsaddf casjhkd casjkhd cjkas cjksa cjkasc jka aksj ajsk ckjasc ajks jkas kajs ckjas cas jas cjksa cjksndjksandjksandjkasn dcjska cjksxac akjscask ckasjcjkas nca']]
-      };
-  },
+          selectedConvo: '',
+          messages: [],
+          username: "",
+          numberOfTimesRouteParamsWatched: 0,
+          newConvos: [],
+          leftSidebarUniqueKey: ''
+  }
+},
   methods: {
     toggleLeftSidebar() {
       this.showLeftSidebar= !this.showLeftSidebar;
@@ -156,24 +159,63 @@ import '@/assets/styles.css';
     updateCanSendMessage() {
       this.canSendMessage = this.inputText.length>0;
     },
-    selectNewConvo(convoId) {
-        this.selectedConvo = convoId;
+    async selectNewConvo(convoId) {
+        if(this.selectedConvo!==convoId) {
+            while(this.messages.length>0) {
+              this.messages.pop(0);
+            }
+            this.selectedConvo = convoId;
+            const response = await fetch('http://localhost:8006/getAIMessages/'+convoId);
+            if(!response.ok) {
+                throw new Error('Network response not ok');
+            }
+            const fetchedMessages = await response.json();
+            for(let msg of fetchedMessages) {
+                if(msg[0].startsWith("AI to ")) {
+                    this.messages.push(["AI", msg[2]]);
+                }
+                else {
+                    this.messages.push(["user", msg[2]]);
+                }
+            }
+        }
     },
     createNewConvo() {
-      if(this.selectedConvo!== -3.14) {
-        console.log("A");
+      if(this.selectedConvo!== "") {
         this.messages = [];
-        this.selectedConvo = -3.14;
+        this.selectedConvo = "";
         this.$refs.inputField.focus();
       }
     },
     sendMessage() {
       this.messages.push(['user', this.inputText]);
       this.inputText = "";
+      setTimeout(()=> {
+        this.messages.push(['AI', "this is the AI response to that"]);
+      }, 1000)
+
+      if(!this.temporaryChatMode) {
+        if(this.selectedConvo==="") {
+            let newConvoId = String(Math.random()*500).substring(0,5);
+            this.newConvos.unshift([newConvoId, "new convo " + newConvoId, new Date()]);
+            this.leftSidebarUniqueKey = newConvoId;
+            this.selectedConvo = newConvoId;
+            console.log(this.newConvos);
+        }
+      }
     },
     setInput(inputText){
-      this.messages.push(['user', inputText]);
-      this.inputText = "";
+      this.inputText = inputText;
+      this.sendMessage();
+    },
+    triggerFileInput() {
+      this.$refs.fileInput.click();
+    },
+    handleFileChange(event) {
+      const file = event.target.files[0];
+      if (file) {
+        console.log('Selected file:', file.name);
+      }
     }
   },
   computed: {
@@ -195,8 +237,24 @@ import '@/assets/styles.css';
     inputFieldTextColor() {
       return this.temporaryChatMode ? 'white' : 'black';
     }
+  },
+  watch: {
+    '$route.params': {
+      immediate: true,
+      handler(newParams) {
+        if(this.numberOfTimesRouteParamsWatched==0) {
+          this.numberOfTimesRouteParamsWatched++;
+        }
+        else if(typeof newParams.username !== 'undefined') {
+          this.username = newParams.username;
+          localStorage.setItem('defaultUsername', newParams.username);
+        }
+        else if(localStorage.getItem('defaultUsername')) {
+            this.username = localStorage.getItem('defaultUsername');
+        }
+      }
+    }
   }
-
   };
 </script>
 
