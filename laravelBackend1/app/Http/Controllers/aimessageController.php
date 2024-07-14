@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\aimessage;
+use App\Http\Middleware\CustomCorsMiddleware;
 
 class aimessageController extends Controller
 {
+
     /**
      * Display a listing of the resource.
      */

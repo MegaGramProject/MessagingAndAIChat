@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\aiconvo;
 use App\Models\aimessage;
+use App\Http\Middleware\CustomCorsMiddleware;
 
 class aiconvoController extends Controller
 {
+
     /**
      * Display a listing of the resource.
      */
