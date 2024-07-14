@@ -254,7 +254,7 @@ watch: {
         for(let i=0; i<this.convosThisMonth.length; i++) {
             if(this.convosThisMonth[i][0]===newVal[0]) {
                 convoTitle = this.convosThisMonth[i][1];
-                this.convosToday.splice(i,1);
+                this.convosThisMonth.splice(i,1);
                 this.newConvosState.unshift([newVal[0], convoTitle, newVal[1]]);
                 return;
             }
@@ -262,7 +262,7 @@ watch: {
         for(let i=0; i<this.convosThisYear.length; i++) {
             if(this.convosThisYear[i][0]===newVal[0]) {
                 convoTitle = this.convosThisYear[i][1];
-                this.onvosToday.splice(i,1);
+                this.convosThisYear.splice(i,1);
                 this.newConvosState.unshift([newVal[0], convoTitle, newVal[1]]);
                 return;
             }
@@ -270,7 +270,7 @@ watch: {
         for(let i=0; i<this.convosBeforeThisYear.length; i++) {
             if(this.convosBeforeThisYear[i][0]===newVal[0]) {
                 convoTitle = this.convosBeforeThisYear[i][1];
-                this.convosToday.splice(i,1);
+                this.convosBeforeThisYear.splice(i,1);
                 this.newConvosState.unshift([newVal[0], convoTitle, newVal[1]]);
                 return;
             }

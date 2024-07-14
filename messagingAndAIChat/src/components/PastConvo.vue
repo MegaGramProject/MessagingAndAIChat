@@ -83,11 +83,37 @@ boxShadow: '0 4px 8px 0 rgba(0, 0, 0, 0.2)', fontSize:'0.8em'}">
         toggleOptions() {
             this.showOptions = !this.showOptions;
         },
-        toggleRenaming() {
-            this.isRenaming = !this.isRenaming;
+        async toggleRenaming() {
+            if(this.isRenaming) {
+                const options = {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        "convotitle": this.convoTitleState
+                    })
+                };
+                const response = await fetch('http://localhost:8008/aiConvo/'+this.convoId, options);
+                if(!response.ok) {
+                    throw new Error('Network response not ok');
+                }
+                this.isRenaming = false;
+            }
+            else {
+                this.isRenaming = true;
+            }
         },
-        deleteConvo() {
+        async deleteConvo() {
+            const options = {
+                method: 'DELETE'
+            }
+            const response = await fetch('http://localhost:8008/aiconvo/'+this.convoId, options);
+            if(!response.ok) {
+                throw new Error('Network response not ok');
+            }
             this.isDeleted = true;
+
         }
     },
     computed: {

@@ -4,6 +4,8 @@ import Messages from './components/Messages.vue';
 import MegagramAIDropdown from './components/MegagramAIDropdown.vue';
 import PublicLinkCreated from './components/PublicLinkCreated.vue';
 import ShareChat from './components/ShareChat.vue';
+import { v4 as uuidv4 } from 'uuid';
+
 </script>
 
 <template>
@@ -156,6 +158,7 @@ import '@/assets/styles.css';
     },
     toggleTemporaryChat(){
       this.temporaryChatMode = !this.temporaryChatMode;
+      this.showMegagramAIDropdown = false;
       this.messages = [];
     },
     updateCanSendMessage() {
@@ -174,10 +177,10 @@ import '@/assets/styles.css';
             const fetchedMessages = await response.json();
             for(let msg of fetchedMessages) {
                 if(msg[0].startsWith("AI to ")) {
-                    this.messages.push(["AI", msg[2]]);
+                    this.messages.push(["AI", msg[2], msg[1]]);
                 }
                 else {
-                    this.messages.push(["user", msg[2]]);
+                    this.messages.push(["user", msg[2], msg[1]]);
                 }
             }
         }
@@ -190,28 +193,32 @@ import '@/assets/styles.css';
       }
     },
     async sendMessage() {
-      this.messages.push(['user', this.inputText]);
-      aiResponse = "this is the AI response to that";
+      let newMessageId = uuidv4();
+      let newAIMessageId = uuidv4();
+      this.messages.push(['user', this.inputText, newMessageId]);
+      let aiResponse = "this is the AI response to that";
       setTimeout(()=> {
-        this.messages.push(['AI', aiResponse]);
+        this.messages.push(['AI', aiResponse, newAIMessageId]);
       }, 1000)
 
       if(!this.temporaryChatMode) {
         if(this.selectedConvo==="") {
-            let newConvoId = String(Math.random()*500).substring(0,5);
+            let newConvoId = uuidv4();
             this.newConvos.unshift([newConvoId, "new convo " + newConvoId, new Date()]);
             this.leftSidebarUniqueKey = newConvoId;
             this.selectedConvo = newConvoId;
             const options = {
               method: "POST",
-              headers: 'Content-Type',
+              headers: {
+                'Content-Type': 'application/json'
+              },
               body: JSON.stringify({
                 "username": this.username,
                 "convoid": newConvoId,
                 "convotitle": "new convo " + newConvoId
               })
             };
-            const response = await fetch('http://localhost:8008/aiConvo', options);
+            const response = await fetch('http://localhost:8008/aiconvo', options);
             if(!response.ok) {
               throw new Error('Network response not ok');
             }
@@ -222,22 +229,22 @@ import '@/assets/styles.css';
       options.body = JSON.stringify({
         "message": this.inputText,
         "username": this.username,
-        "messageId": uuidv4(),
-        "convodId": this.selectedConvo,
+        "messageid": newMessageId,
+        "convoid": this.selectedConvo,
         "sent": new Date()
       });
-      const response2 = await fetch('http://localhost:8008/aiMessage', options);
+      const response2 = await fetch('http://localhost:8008/aimessage', options);
       if(!response2.ok) {
         throw new Error('Network response not ok');
       }
       options.body = JSON.stringify({
         "message": aiResponse,
-        "username": this.username,
-        "messageId": uuidv4(),
-        "convodId": this.selectedConvo,
+        "username": "AI to " + this.username,
+        "messageid": newAIMessageId,
+        "convoid": this.selectedConvo,
         "sent": new Date()
       });
-      const response3 = await fetch('http://localhost:8008/aiMessage', options);
+      const response3 = await fetch('http://localhost:8008/aimessage', options);
       if(!response3.ok) {
         throw new Error('Network response not ok');
         }

@@ -7,6 +7,10 @@ sender: {
 message: {
     type: String,
     required: true
+},
+messageId: {
+    type: String,
+    required: true
 }
 })
 </script>
@@ -76,15 +80,43 @@ export default {
                 console.error('Failed to copy text: ', err);
             });
         },
-        regenerateMessage() {
+        async regenerateMessage() {
             this.messageDisplayed = "Message has been regenerated.";
+            const options = {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        'message': this.messageDisplayed
+                    })
+                };
+            const response = await fetch('http://localhost:8008/aimessage/'+this.messageId, options);
+            if(!response.ok) {
+                throw new Error('Network response not ok');
+            }
         },
-        toggleEditMode() {
+        async toggleEditMode() {
             if(!this.editMode) {
                 this.messageBeforeEdit = this.messageDisplayed;
                 this.editMode = true;
             }
             else {
+                const options = {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        'message': this.messageDisplayed
+                    })
+                };
+                
+                const response = await fetch('http://localhost:8008/aimessage/'+this.messageId, options);
+                if(!response.ok) {
+                    throw new Error('Network response not ok');
+                }
+                
                 this.messageBeforeEdit = "";
                 this.editMode = false;
             }
