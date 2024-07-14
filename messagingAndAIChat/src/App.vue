@@ -10,7 +10,8 @@ import ShareChat from './components/ShareChat.vue';
   <template v-if="showLeftSidebar">
     <div :style="{opacity:backgroundOpacity, pointerEvents:backgroundPointerEvents}">
     <LeftSidebar :toggleLeftSidebar="toggleLeftSidebar" :toggleShareChatPopup="toggleShareChatPopup" :selectedConvo="selectedConvo"
-    :selectNewConvo="selectNewConvo" :createNewConvo="createNewConvo" :username="username" :newConvos="newConvos" :uniqueKey="leftSidebarUniqueKey"/>
+    :selectNewConvo="selectNewConvo" :createNewConvo="createNewConvo" :username="username" :newConvos="newConvos" :uniqueKey="leftSidebarUniqueKey"
+    :oldConvoBacktoLife="oldConvoBacktoLife"/>
     </div>
     <div @click="toggleMegagramAIDropdown" class="hoverableElement" :style="{backgroundColor:'white', display:'flex', alignItems:'center', justifyContent:'center', gap:'1em',
       borderRadius:'5px', border:'none', position:'absolute', top:'2%', left:'16%', cursor:'pointer', zIndex:'10'}">
@@ -113,7 +114,8 @@ import '@/assets/styles.css';
           username: "",
           numberOfTimesRouteParamsWatched: 0,
           newConvos: [],
-          leftSidebarUniqueKey: ''
+          leftSidebarUniqueKey: '',
+          oldConvoBacktoLife: [],
   }
 },
   methods: {
@@ -187,11 +189,11 @@ import '@/assets/styles.css';
         this.$refs.inputField.focus();
       }
     },
-    sendMessage() {
+    async sendMessage() {
       this.messages.push(['user', this.inputText]);
-      this.inputText = "";
+      aiResponse = "this is the AI response to that";
       setTimeout(()=> {
-        this.messages.push(['AI', "this is the AI response to that"]);
+        this.messages.push(['AI', aiResponse]);
       }, 1000)
 
       if(!this.temporaryChatMode) {
@@ -200,9 +202,47 @@ import '@/assets/styles.css';
             this.newConvos.unshift([newConvoId, "new convo " + newConvoId, new Date()]);
             this.leftSidebarUniqueKey = newConvoId;
             this.selectedConvo = newConvoId;
-            console.log(this.newConvos);
+            const options = {
+              method: "POST",
+              headers: 'Content-Type',
+              body: JSON.stringify({
+                "username": this.username,
+                "convoid": newConvoId,
+                "convotitle": "new convo " + newConvoId
+              })
+            };
+            const response = await fetch('http://localhost:8008/aiConvo', options);
+            if(!response.ok) {
+              throw new Error('Network response not ok');
+            }
+          }
+          else {
+            this.oldConvoBackToLife = [this.selectedConvo, new Date()];
+          }
+      options.body = JSON.stringify({
+        "message": this.inputText,
+        "username": this.username,
+        "messageId": uuidv4(),
+        "convodId": this.selectedConvo,
+        "sent": new Date()
+      });
+      const response2 = await fetch('http://localhost:8008/aiMessage', options);
+      if(!response2.ok) {
+        throw new Error('Network response not ok');
+      }
+      options.body = JSON.stringify({
+        "message": aiResponse,
+        "username": this.username,
+        "messageId": uuidv4(),
+        "convodId": this.selectedConvo,
+        "sent": new Date()
+      });
+      const response3 = await fetch('http://localhost:8008/aiMessage', options);
+      if(!response3.ok) {
+        throw new Error('Network response not ok');
         }
       }
+      this.inputText = "";
     },
     setInput(inputText){
       this.inputText = inputText;

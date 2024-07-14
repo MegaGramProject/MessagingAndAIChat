@@ -32,6 +32,10 @@ newConvos: {
 uniqueKey: {
     type: String,
     required: true
+},
+oldConvoBackToLife: {
+    type: Array,
+    required: true
 }
 })
 </script>
@@ -63,12 +67,12 @@ padding: '0.4em 0.4em', marginLeft:'13.5em', display: displayShowNewChatText}">N
 <br/>
 
 
-<template v-if="newConvos.length > 0" :key="uniqueKey">
-    <PastConvosGroup :timeOfConvoGroup="newConvos[0][2]" :selectedConvo="selectedConvo" :convoTitles="[...newConvos, ...convosToday]"
+<template v-if="newConvosState.length > 0" :key="uniqueKey">
+    <PastConvosGroup :timeOfConvoGroup="newConvos[0][2]" :selectedConvo="selectedConvo" :convoTitles="[...newConvosState, ...convosToday]"
     :selectNewConvo="selectNewConvo" :toggleShareChatPopup="toggleShareChatPopup"/>
 </template>
 
-<template v-if="convosToday.length>0 && newConvos.length==0">
+<template v-if="convosToday.length>0 && newConvosState.length==0">
     <PastConvosGroup :timeOfConvoGroup="new Date(convosToday[0][2])" :selectedConvo="selectedConvo" :convoTitles="convosToday"
     :selectNewConvo="selectNewConvo" :toggleShareChatPopup="toggleShareChatPopup"/>
 </template>
@@ -122,6 +126,7 @@ data() {
         convosThisMonth: [],
         convosThisYear: [],
         convosBeforeThisYear: [],
+        newConvosState: []
     };
 },
 
@@ -210,6 +215,67 @@ computed: {
     },
     displayShowNewChatText(){
         return this.showNewChatText ? 'inline-block' : 'none';
+    }
+},
+watch: {
+    newConvos(newVal) {
+        this.newConvosState = newVal;
+    },
+
+    oldConvoBackToLife(newVal) {
+        for(let i=0; i<this.newConvosState.length; i++) {
+            if(this.newConvosState[i][0]===newVal[0]) {
+                if(i==0) {
+                    return;
+                }
+                convoTitle = this.newConvos[i][1];
+                this.newConvosState.splice(i, 1);
+                this.newConvosState.unshift([newVal[0], convoTitle, newVal[1]]);
+                return;
+            }
+        }
+
+        for(let i=0; i<this.convosToday.length; i++) {
+            if(this.convosToday[i][0]===newVal[0]) {
+                convoTitle = this.convosToday[i][1];
+                this.convosToday.splice(i,1);
+                this.newConvosState.unshift([newVal[0], convoTitle, newVal[1]]);
+                return;
+            }
+        }
+        for(let i=0; i<this.convosThisWeek.length; i++) {
+            if(this.convosThisWeek[i][0]===newVal[0]) {
+                convoTitle = this.convosThisWeek[i][1];
+                this.convosThisWeek.splice(i,1);
+                this.newConvosState.unshift([newVal[0], convoTitle, newVal[1]]);
+                return;
+            }
+        }
+        for(let i=0; i<this.convosThisMonth.length; i++) {
+            if(this.convosThisMonth[i][0]===newVal[0]) {
+                convoTitle = this.convosThisMonth[i][1];
+                this.convosToday.splice(i,1);
+                this.newConvosState.unshift([newVal[0], convoTitle, newVal[1]]);
+                return;
+            }
+        }
+        for(let i=0; i<this.convosThisYear.length; i++) {
+            if(this.convosThisYear[i][0]===newVal[0]) {
+                convoTitle = this.convosThisYear[i][1];
+                this.onvosToday.splice(i,1);
+                this.newConvosState.unshift([newVal[0], convoTitle, newVal[1]]);
+                return;
+            }
+        }
+        for(let i=0; i<this.convosBeforeThisYear.length; i++) {
+            if(this.convosBeforeThisYear[i][0]===newVal[0]) {
+                convoTitle = this.convosBeforeThisYear[i][1];
+                this.convosToday.splice(i,1);
+                this.newConvosState.unshift([newVal[0], convoTitle, newVal[1]]);
+                return;
+            }
+        }
+        
     }
 }
 };
