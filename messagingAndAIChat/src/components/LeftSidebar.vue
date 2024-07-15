@@ -68,7 +68,7 @@ padding: '0.4em 0.4em', marginLeft:'13.5em', display: displayShowNewChatText}">N
 
 
 <template v-if="newConvosState.length > 0" :key="uniqueKey">
-    <PastConvosGroup :timeOfConvoGroup="newConvos[0][2]" :selectedConvo="selectedConvo" :convoTitles="[...newConvosState, ...convosToday]"
+    <PastConvosGroup :timeOfConvoGroup="newConvosState[0][2]" :selectedConvo="selectedConvo" :convoTitles="[...newConvosState, ...convosToday]"
     :selectNewConvo="selectNewConvo" :toggleShareChatPopup="toggleShareChatPopup"/>
 </template>
 
@@ -133,7 +133,6 @@ data() {
 mounted() {
     this.fetchAIConvos(this.username);
 },
-
 
 methods: {
     disableRightClick(event) {
@@ -219,10 +218,15 @@ computed: {
 },
 watch: {
     newConvos(newVal) {
-        this.newConvosState = newVal;
+        console.log(newVal);
+        this.newConvosState = [];
+        for(let i = 0; i < newVal.length; i++) {
+            this.newConvosState.push(newVal[i]);
+        }
     },
 
     oldConvoBackToLife(newVal) {
+        let convoTitle = "";
         for(let i=0; i<this.newConvosState.length; i++) {
             if(this.newConvosState[i][0]===newVal[0]) {
                 if(i==0) {

@@ -15,20 +15,33 @@ class CustomCorsMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        
         $allowedOrigins = [
             'http://localhost:8007'
         ];
 
-        // Get the origin of the request
         $origin = $request->headers->get('Origin');
 
-        // Check if the origin is in the list of allowed origins
         if (in_array($origin, $allowedOrigins)) {
-            return $next($request)
-                ->header('Access-Control-Allow-Origin', $origin)
-                ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
-                ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+            $headers = [
+                'Access-Control-Allow-Origin' => $origin,
+                'Access-Control-Allow-Methods' => 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+                'Access-Control-Allow-Headers' => 'Content-Type, Authorization',
+                'Access-Control-Allow-Credentials' => 'true'
+            ];
+
+            if ($request->getMethod() == "OPTIONS") {
+                return response()->json('OK', 200, $headers);
+            }
+
+            $response = $next($request);
+
+
+            foreach ($headers as $key => $value) {
+                $response->header($key, $value);
+            }
+            
+
+            return $response;
         }
 
         return $next($request);

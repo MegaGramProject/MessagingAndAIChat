@@ -1,7 +1,7 @@
 <script setup>
 defineProps({
 convoId: {
-    type: Number,
+    type: String,
     required: true
 },
 togglePublicLinkCreatedPopup: {
@@ -13,7 +13,7 @@ togglePublicLinkCreatedPopup: {
 
 <template>
 <div :style="{backgroundColor:'white', boxShadow:'0 4px 8px 0 rgba(0, 0, 0, 0.2)', position:'absolute', left:'36%', top:'25%',
-width:'31em', height:'25em', padding:'1em 0.9em', borderRadius:'5px'}">
+width:'31em', height:'25em', padding:'1em 0.9em', borderRadius:'5px', zIndex:'10'}">
 <p :style="{fontWeight:'bold'}">Public Link Created</p>
 <hr :style="{color:'lightgray', marginTop:'1em'}">
 <br/>
@@ -28,11 +28,12 @@ width:'31em', height:'25em', padding:'1em 0.9em', borderRadius:'5px'}">
 </div>
 <div :style="{borderStyle:'solid', borderColor:'lightgray', borderRadius:'1em', height:'4em', padding:'0.4em 1em', marginTop:'1em',
 display:'flex', justifyContent:'space-between', alignItems:'center'}">
-    <p>https://chatgpt.com/share/55cad0e0-0079-4818-a384-770b87b72923</p>
-    <button :style="{backgroundColor:'black', color:'white', borderRadius:'2em', width:'8.8em', display:'flex', alignItems:'center', cursor:'pointer',
-    height:'3em'}">
+    <p>http://localhost:8007/publiclySharedAIConvo/{{ convoId }}</p>
+    <button @click="copyToClipboard" :style="{backgroundColor:'black', color:'white', borderRadius:'2em', width:'8.8em', display:'flex', alignItems:'center', cursor:'pointer',
+    height:'3em', marginLeft:'-3em', marginTop:'3em'}">
         <img :src="copyIcon" :style="{height:'1.9em', width:'1.9em', objectFit:'contain'}"/>
-        <span :style="{fontWeight:'bold'}">Copy link</span>
+        <span v-if="!copySuccess" :style="{fontWeight:'bold'}">Copy link</span>
+        <span v-if="copySuccess" :style="{fontWeight:'bold'}">Successfully Copied</span>
     </button>
 </div>
 <div :style="{display:'flex', justifyContent:'space-evenly', alignItems:'center', marginTop:'2em'}">
@@ -58,7 +59,8 @@ import twitterIcon from '@/assets/images/twitterIcon.png';
 export default {
     data() {
         return {
-            isChecked: false
+            isChecked: false,
+            copySuccess: false
         };
     },
     methods: {
@@ -74,7 +76,16 @@ export default {
         shareChatViaTwitter() {
             window.location.href = "https://twitter.com";
         },
-
+        copyToClipboard() {
+            navigator.clipboard.writeText('http://localhost:8007/publiclySharedAIConvo/'+this.convoId).then(() => {
+                this.copySuccess = true;
+                setTimeout(() => {
+                this.copySuccess = false;
+                }, 650);
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+            });
+        },
     }
 }
 </script>

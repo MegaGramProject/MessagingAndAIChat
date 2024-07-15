@@ -5,6 +5,13 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\aimessage;
 use App\Http\Middleware\CustomCorsMiddleware;
+use Google\Cloud\TextToSpeech\V1\TextToSpeechClient;
+use Google\Cloud\TextToSpeech\V1\SynthesisInput;
+use Google\Cloud\TextToSpeech\V1\VoiceSelectionParams;
+use Google\Cloud\TextToSpeech\V1\AudioConfig;
+use Google\Cloud\TextToSpeech\V1\AudioEncoding;
+use Google\Cloud\Storage\StorageClient;
+use Illuminate\Support\Str;
 
 class aimessageController extends Controller
 {
@@ -82,6 +89,104 @@ class aimessageController extends Controller
 
         $message->delete();
 
+        $projectId = 'megagram-428802';
+        $bucketName = 'megagram-aichat-inputfiles';
+        putenv("GOOGLE_APPLICATION_CREDENTIALS=/Users/rishavr/Downloads/megagram-428802-476264306d3b.json");
+
+    
+        $storage = new StorageClient([
+            'projectId' => $projectId,
+        ]);
+
+
+        $bucket = $storage->bucket($bucketName);
+
+        foreach ($bucket->objects() as $object) {
+            $objectInfo = $object->info();
+            if ($objectInfo['metadata']['messageid'] === $messageid) {
+                $object->delete();
+            }
+        }
+
         return response()->json(null, 204);
+
+
     }
+
+    public function spokenVersionOfMessage(Request $request)
+    {
+        
+        $request->validate([
+            'message' => 'required|string'
+        ]);
+
+        $message = $request->input('message');
+        
+
+        putenv("GOOGLE_APPLICATION_CREDENTIALS=/Users/rishavr/Downloads/megagram-428802-476264306d3b.json");
+
+        $client = new TextToSpeechClient();
+
+
+        $input_text = new SynthesisInput();
+        $input_text->setText($message);
+
+        $voice = new VoiceSelectionParams();
+        $voice->setLanguageCode('en-US');
+        $voice->setName('en-US-Studio-O');
+
+
+        $audioConfig = new AudioConfig();
+        $audioConfig->setAudioEncoding(AudioEncoding::LINEAR16);
+        $audioConfig->setSpeakingRate(1);
+
+    
+        $response = $client->synthesizeSpeech($input_text, $voice, $audioConfig);
+
+        $audioContent = $response->getAudioContent();
+
+        return response($audioContent)
+        ->header('Content-Type', 'audio/wav');
+    }
+
+    public function sendFilesWithMessage(Request $request) {
+        
+        $request->validate([
+            'messageid' => 'required|string',
+        ]);
+
+        $messageId = $request->input('messageid');
+
+
+        $projectId = 'megagram-428802';
+        $bucketName = 'megagram-aichat-inputfiles';
+        putenv("GOOGLE_APPLICATION_CREDENTIALS=/Users/rishavr/Downloads/megagram-428802-476264306d3b.json");
+
+    
+        $storage = new StorageClient([
+            'projectId' => $projectId,
+        ]);
+
+
+        $bucket = $storage->bucket($bucketName);
+
+        foreach ($request->files as $uploadedFile) {
+            $uniqueFileName = Str::uuid() . '.' . $uploadedFile->getClientOriginalExtension();
+            $bucket->upload(
+                fopen($uploadedFile->getPathname(), 'r'),
+                [
+                    'name' => $uniqueFileName,
+                    'metadata' => [
+                        'metadata' => [
+                            'messageid' => $messageId,
+                            'filename' => $uploadedFile->getClientOriginalName(),
+                        ]
+                    ]
+                ]
+            );
+        }
+
+        return response()->json(['message' => 'Files uploaded successfully'], 200);
+    }
+
 }

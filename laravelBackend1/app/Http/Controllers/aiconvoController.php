@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\aiconvo;
 use App\Models\aimessage;
 use App\Http\Middleware\CustomCorsMiddleware;
+use Google\Cloud\Storage\StorageClient;
 
 class aiconvoController extends Controller
 {
@@ -99,4 +100,45 @@ class aiconvoController extends Controller
         return response()->json(null, 204);
     }
 
+    public function getFilesForConvo($convoid) {
+        $messages = aimessage::where('convoid', $convoid)->get();
+    
+        $messageIds = [];
+        if (!$messages->isEmpty()) {
+            foreach($messages as $message) {
+                $messageIds[] = $message->messageid;
+            }
+    
+            $projectId = 'megagram-428802';
+            $bucketName = 'megagram-aichat-inputfiles';
+            putenv("GOOGLE_APPLICATION_CREDENTIALS=/Users/rishavr/Downloads/megagram-428802-476264306d3b.json");
+    
+            $storage = new StorageClient([
+                'projectId' => $projectId,
+            ]);
+    
+            $bucket = $storage->bucket($bucketName);
+            $filesList = [];
+    
+            foreach ($bucket->objects() as $object) {
+                $objectInfo = $object->info();
+                $messageId = $objectInfo['metadata']['messageid'];
+    
+                if (in_array($messageId, $messageIds)) {
+                    $blobData = $object->downloadAsString();
+                    $fileName = $objectInfo['metadata']['filename'];
+                    $messageId = mb_convert_encoding($messageId, 'UTF-8', 'UTF-8');
+                    $encodedBlobData = base64_encode($blobData);
+                    $contentType = $objectInfo['contentType'];
+    
+                    $filesList[] = [$fileName, $messageId, $encodedBlobData, $contentType];
+                }
+            }
+    
+            return response()->json($filesList, 200);
+        }
+    
+        return response()->json(null, 204);
+    }
+    
 }

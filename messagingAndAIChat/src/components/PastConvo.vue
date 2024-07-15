@@ -94,7 +94,7 @@ boxShadow: '0 4px 8px 0 rgba(0, 0, 0, 0.2)', fontSize:'0.8em'}">
                         "convotitle": this.convoTitleState
                     })
                 };
-                const response = await fetch('http://localhost:8008/aiConvo/'+this.convoId, options);
+                const response = await fetch('http://localhost:8008/api/aiconvo/'+this.convoId, options);
                 if(!response.ok) {
                     throw new Error('Network response not ok');
                 }
@@ -108,7 +108,7 @@ boxShadow: '0 4px 8px 0 rgba(0, 0, 0, 0.2)', fontSize:'0.8em'}">
             const options = {
                 method: 'DELETE'
             }
-            const response = await fetch('http://localhost:8008/aiconvo/'+this.convoId, options);
+            const response = await fetch('http://localhost:8008/api/aiconvo/'+this.convoId, options);
             if(!response.ok) {
                 throw new Error('Network response not ok');
             }

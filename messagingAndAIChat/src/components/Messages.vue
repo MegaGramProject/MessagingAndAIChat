@@ -17,7 +17,7 @@ setInput: {
 <div ref="scrollableDiv" v-if="messagesExist" :style="{backgroundColor:'white', position:'absolute', display:'flex', flexDirection:'column',
     left:'25%', top:'9.4%', width:'54%', height:'69%', padding:'2em 3em', overflowY:'scroll', gap:'2.85em'}">
     <template v-for="(message, index) in messages" :key="index">
-    <Message :sender="message[0]" :message="message[1]" :messageId="message[2]"/>
+    <Message :sender="message[0]" :message="message[1]" :messageId="message[2]" :messageFiles="message[3]"/>
     </template>
 </div>
 
