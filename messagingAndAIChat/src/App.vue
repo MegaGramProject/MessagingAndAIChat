@@ -17,7 +17,7 @@ import ShareChat from './components/ShareChat.vue';
     :oldConvoBackToLife="oldConvoBackToLife"/>
     </div>
     <div @click="toggleMegagramAIDropdown" class="hoverableElement" :style="{backgroundColor:'white', display:'flex', alignItems:'center', justifyContent:'center', gap:'1em',
-      borderRadius:'5px', border:'none', position:'absolute', top:'2%', left:'16%', cursor:'pointer', zIndex:'10'}">
+      borderRadius:'5px', border:'none', position:'absolute', top:'2%', left:'20%', cursor:'pointer', zIndex:'10'}">
         <span :style="{color:'gray', fontWeight:'semibold', fontSize:'1.4em'}">Megagram AI</span>
         <img :src="dropdownV" :style="{height:'1em', width:'1em'}"/>
     </div>
@@ -50,11 +50,12 @@ import ShareChat from './components/ShareChat.vue';
   </template>
 
   <template v-if="showMegagramAIDropdown">
-  <MegagramAIDropdown :toggleMegagramAIDropdown="toggleMegagramAIDropdown" :toggleTemporaryChat="toggleTemporaryChat" :isTemporary="temporaryChatMode"/>
+  <MegagramAIDropdown :toggleMegagramAIDropdown="toggleMegagramAIDropdown" :toggleTemporaryChat="toggleTemporaryChat" :isTemporary="temporaryChatMode" :setAccent="setAccent"
+  :setVoiceSpeed="setVoiceSpeed" :setVoiceType="setVoiceType"/>
   </template>
 
 
-  <Messages :messages="messages" :setInput="setInput"/>
+  <Messages :messages="messages" :setInput="setInput" :accent="accent" :voiceSpeed="voiceSpeed" :voiceType="voiceType"/>
 
 
   
@@ -191,9 +192,21 @@ import '@/assets/styles.css';
           showFileName7: false,
           showFileName8: false,
           showFileName9: false,
+          accent: 'american',
+          voiceSpeed: 'speed1',
+          voiceType: 'femaleVoice'
   }
 },
   methods: {
+    setAccent(newAccent) {
+      this.accent = newAccent;
+    },
+    setVoiceSpeed(newVoiceSpeed) {
+      this.voiceSpeed = newVoiceSpeed;
+    },
+    setVoiceType(newVoiceType) {
+      this.voiceType = newVoiceType;
+    },
     toggleLeftSidebar() {
       this.showLeftSidebar= !this.showLeftSidebar;
       this.showOpenSidebarText= false;

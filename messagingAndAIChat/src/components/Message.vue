@@ -15,6 +15,18 @@ messageId: {
 messageFiles: {
     type: Array,
     required: true
+},
+accent: {
+    type: String,
+    required: true
+},
+voiceSpeed: {
+    type: String,
+    required: true
+},
+voiceType: {
+    type: String,
+    required: true
 }
 })
 </script>
@@ -27,7 +39,7 @@ messageFiles: {
     
     <div v-if="messageFileImages.length>0" v-for="(fileImage, index) in messageFileImages" :key="index" :style="{display:'flex', flexDirection:'column'}">
     <div :style="{display: 'flex', alignItems:'center', gap:'1.6em'}">
-    <img :src="fileImage" :style="{width:'3em', height:'3em', objectFit:'contain', cursor:'pointer'}"/>
+    <img @click="downloadFile(messageFiles[index])" :src="fileImage" :style="{width:'3em', height:'3em', objectFit:'contain', cursor:'pointer'}"/>
     <p :style="{fontSize:'0.67em'}">{{ messageFileNames[index] }}</p>
     </div>
     </div>
@@ -117,13 +129,13 @@ export default {
     },
     methods: {
         async deleteMessage() {
+            this.isDeleted = true;
             const response = await fetch('http://localhost:8008/api/aimessage/'+ this.messageId, {
                 method: 'DELETE'
             });
             if(!response.ok) {
                 throw new Error('Network response not ok');
             }
-            this.isDeleted = true;
         },
         copyToClipboard() {
             navigator.clipboard.writeText(this.messageDisplayed).then(() => {
@@ -181,6 +193,9 @@ export default {
             this.audioPlaying = true;
             if(this.audio!==null){
                 this.audio.play();
+                this.audio.onended = () => {
+                    this.audioPlaying = false;
+                };
                 return;
             }
             const options = {
@@ -189,7 +204,10 @@ export default {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                        'message': this.messageDisplayed
+                    'message': this.messageDisplayed,
+                    'accent': this.accent,
+                    'voiceSpeed': this.voiceSpeed,
+                    'voiceType': this.voiceType
                     })
             };
             const response = await fetch('http://localhost:8008/api/spokenAIMessage', options);
@@ -201,6 +219,9 @@ export default {
             const spokenAIMessage = new Audio(spokenAIMessageURL);
             this.audio = spokenAIMessage;
             this.audio.play();
+            this.audio.onended = () => {
+                this.audioPlaying = false;
+            };
             
         },
 
@@ -215,6 +236,36 @@ export default {
             if(this.audio){
                 this.audio.pause();
                 this.audio.currentTime = 0;
+            }
+        },
+        downloadFile(file) {
+            const url = URL.createObjectURL(file);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = file.name;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    },
+    watch: {
+        accent(newVal) {
+            if(this.audio!==null) {
+                this.audio.pause();
+                this.audio = null;
+            }
+        },
+        voiceSpeed(newVal) {
+            if(this.audio!==null) {
+                this.audio.pause();
+                this.audio = null;
+            }
+        },
+        voiceType(newVal) {
+            if(this.audio!==null) {
+                this.audio.pause();
+                this.audio = null;
             }
         }
     }

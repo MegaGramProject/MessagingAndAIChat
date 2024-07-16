@@ -7,9 +7,15 @@ use App\Models\aiconvo;
 use App\Models\aimessage;
 use App\Http\Middleware\CustomCorsMiddleware;
 use Google\Cloud\Storage\StorageClient;
+use App\Http\Controllers\aimessageController;
 
 class aiconvoController extends Controller
 {
+
+    public function __construct(aimessageController $aimessageController)
+    {
+        $this->aimessageController = $aimessageController;
+    }
 
     /**
      * Display a listing of the resource.
@@ -93,7 +99,7 @@ class aiconvoController extends Controller
         
         if (!$messages->isEmpty()) {
             foreach ($messages as $message) {
-                $message->delete();
+                $this->aimessageController->destroy($message->messageid);
             }
         }
 

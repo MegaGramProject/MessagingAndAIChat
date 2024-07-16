@@ -105,6 +105,7 @@ boxShadow: '0 4px 8px 0 rgba(0, 0, 0, 0.2)', fontSize:'0.8em'}">
             }
         },
         async deleteConvo() {
+            this.isDeleted = true;
             const options = {
                 method: 'DELETE'
             }
@@ -112,7 +113,6 @@ boxShadow: '0 4px 8px 0 rgba(0, 0, 0, 0.2)', fontSize:'0.8em'}">
             if(!response.ok) {
                 throw new Error('Network response not ok');
             }
-            this.isDeleted = true;
 
         }
     },
