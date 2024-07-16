@@ -1,14 +1,33 @@
-import './assets/main.css'
+import './assets/main.css';
 
-import { createApp } from 'vue'
-import { createPinia } from 'pinia'
+import { createPinia } from 'pinia';
+import { createApp } from 'vue';
 
-import App from './App.vue'
-import router from './router'
+import App from './App.vue';
+import PublicConvo from './PublicConvo.vue';
+import NotFound from './NotFound.vue';
+import router from './router/index';
 
-const app = createApp(App)
 
-app.use(createPinia())
-app.use(router)
+const currentURL = window.location.href;
 
-app.mount('#app')
+if(currentURL.startsWith("http://localhost:8007/aiChat/")) {
+    const app = createApp(App)
+    app.use(createPinia())
+    app.use(router)
+    app.mount('#main')
+}
+
+else if(currentURL.startsWith("http://localhost:8007/publiclySharedAIConvo/")) {
+    const pc = createApp(PublicConvo);
+    pc.use(createPinia());
+    pc.use(router);
+    pc.mount('#main');
+}
+
+else {
+    const nf = createApp(NotFound);
+    nf.use(createPinia());
+    nf.use(router);
+    nf.mount('#main');
+}

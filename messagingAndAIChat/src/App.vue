@@ -545,7 +545,3 @@ import '@/assets/styles.css';
   }
   };
 </script>
-
-<style scoped>
-
-</style>
