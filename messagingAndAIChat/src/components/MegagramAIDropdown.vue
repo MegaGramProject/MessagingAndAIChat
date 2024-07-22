@@ -29,7 +29,7 @@ setVoiceType: {
 
 
 <template>
-<div :style="{backgroundColor:'white', display:'flex', flexDirection:'column', position:'absolute', 'top':'10%', left:'19.3%',
+<div id="megagramAIDropdown" :style="{backgroundColor:'white', display:'flex', flexDirection:'column', position:'absolute', 'top':'10%', left:'19.3%',
 justifyContent:'space-between', zIndex:'10', alignItems:'start', gap:'0.4em'}">
     <div :style="{display:'flex', gap:'0.5em', alignItems:'center', width:'30em', borderStyle:'solid', borderColor:'lightgray',
     borderRadius:'7px', borderWidth:'0.05px'}">

@@ -20,20 +20,25 @@ voiceSpeed: {
 voiceType: {
     type: String,
     required: true
+},
+convoid: {
+    type: String,
+    required: true
 }
 })
 </script>
 
 
 <template>
-<div ref="scrollableDiv" v-if="messagesExist" :style="{backgroundColor:'white', position:'absolute', display:'flex', flexDirection:'column',
+<div class="messagesDiv" ref="scrollableDiv" v-if="messagesExist" :style="{backgroundColor:'white', position:'absolute', display:'flex', flexDirection:'column',
     left:'25%', top:'9.4%', width:'54%', height:'69%', padding:'2em 3em', overflowY:'scroll', gap:'2.85em'}">
     <template v-for="(message, index) in messages" :key="index">
-    <Message :sender="message[0]" :message="message[1]" :messageId="message[2]" :messageFiles="message[3]" :accent="accent" :voiceSpeed="voiceSpeed" :voiceType="voiceType"/>
+    <Message :sender="message[0]" :message="message[1]" :messageId="message[2]" :messageFiles="message[3]" :accent="accent" :voiceSpeed="voiceSpeed" :voiceType="voiceType"
+    :convoid="convoid"/>
     </template>
 </div>
 
-<div v-if="!messagesExist" :style="{backgroundColor:'white', position:'absolute', display:'flex',
+<div class="messagesDiv" v-if="!messagesExist" :style="{backgroundColor:'white', position:'absolute', display:'flex',
 flexDirection:'column', left:'25%', top:'4%', width:'54%', height:'69%', justifyContent:'center', alignItems:'center'}">
     <img :src="chatgptIcon" :style="{height:'6em', width:'6em', objectFit:'contain', pointerEvents:'none'}"/>
     <br/>

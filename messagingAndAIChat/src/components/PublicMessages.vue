@@ -10,7 +10,7 @@ messages: {
 
 
 <template>
-<div ref="scrollableDiv" :style="{backgroundColor:'white', position:'absolute', display:'flex', flexDirection:'column',
+<div id="publicMessagesDiv" ref="scrollableDiv" :style="{backgroundColor:'white', position:'absolute', display:'flex', flexDirection:'column',
     left:'25%', top:'19%', width:'54%', height:'65%', padding:'2em 3em', overflowY:'scroll', gap:'2.85em'}">
     <template v-for="(message, index) in messages" :key="index">
     <PublicMessage :sender="message[0]" :message="message[1]" :messageId="message[2]" :messageFiles="message[3]"/>

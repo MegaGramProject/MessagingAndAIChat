@@ -55,7 +55,7 @@ import ShareChat from './components/ShareChat.vue';
   </template>
 
 
-  <Messages :messages="messages" :setInput="setInput" :accent="accent" :voiceSpeed="voiceSpeed" :voiceType="voiceType"/>
+  <Messages :messages="messages" :setInput="setInput" :accent="accent" :voiceSpeed="voiceSpeed" :voiceType="voiceType" :convoid="selectedConvo"/>
 
 
   
@@ -112,14 +112,14 @@ import ShareChat from './components/ShareChat.vue';
       <p :style="{position: 'absolute', color:'white', backgroundColor:'black', top:'-100%', left:'-100%', fontSize:'0.6em', width:'25em', display:displayFileName9}">{{ files[9].name }}</p>
     </div>
   </div>
-  <div :style="{position:'absolute', left:'24%', top:'86%', width:'55%', height:'7%', borderStyle:'solid', display:'flex',
+  <div id="inputDiv" :style="{position:'absolute', left:'24%', top:'86%', width:'55%', height:'7%', borderStyle:'solid', display:'flex',
   justifyContent:'start', alignItems:'center', backgroundColor: inputDivAndFieldBackground, borderRadius:'2em'}">
   <input type="file" ref="fileInput" @change="handleFileChange" style="display: none;" />
     <template v-if="!temporaryChatMode">
-      <img @click="triggerFileInput" :src="attachmentIcon" :style="{height:'3em', width:'3em', objectFit:'contain', cursor:'pointer', marginLeft:'1em'}"/>
+      <img class="iconToBeAdjustedForDarkMode" @click="triggerFileInput" :src="attachmentIcon" :style="{height:'3em', width:'3em', objectFit:'contain', cursor:'pointer', marginLeft:'1em'}"/>
     </template>
     <template v-if="temporaryChatMode">
-      <img @click="triggerFileInput" :src="whiteAttachmentIcon" :style="{height:'2.3em', width:'2.3em', objectFit:'contain', cursor:'pointer', marginLeft:'1em'}"/>
+      <img class="iconToBeAdjustedForDarkMode" @click="triggerFileInput" :src="whiteAttachmentIcon" :style="{height:'2.3em', width:'2.3em', objectFit:'contain', cursor:'pointer', marginLeft:'1em'}"/>
     </template>
     <textarea ref="inputField" @input="updateCanSendMessage" v-model="inputText" placeholder="Message MegAI" :style="{fontFamily:'Arial', height:'100%', fontSize:'1.25em', padding:'1em 1em',
     outline:'none', border:'none', backgroundColor: inputDivAndFieldBackground, width:'87%', padding:'1em 0.5em', color: inputFieldTextColor}"/>
@@ -128,10 +128,10 @@ import ShareChat from './components/ShareChat.vue';
     </template>
     <template v-if="canSendMessage">
       <template v-if="!temporaryChatMode">
-        <img @click="sendMessage()" :src="sendMessageIcon2" :style="{height:'3em', width:'3em', position:'absolute', left:'95%', objectFit:'contain', cursor:'pointer'}"/>
+        <img class="iconToBeAdjustedForDarkMode" @click="sendMessage()" :src="sendMessageIcon2" :style="{height:'3em', width:'3em', position:'absolute', left:'95%', objectFit:'contain', cursor:'pointer'}"/>
       </template>
       <template v-if="temporaryChatMode">
-        <img @click="sendMessage()" :src="whiteSendMessageIcon2" :style="{height:'3em', width:'3em', position:'absolute', left:'95%', objectFit:'contain', cursor:'pointer'}"/>
+        <img class="iconToBeAdjustedForDarkMode" @click="sendMessage()" :src="whiteSendMessageIcon2" :style="{height:'3em', width:'3em', position:'absolute', left:'95%', objectFit:'contain', cursor:'pointer'}"/>
       </template>
     </template>
   </div>
@@ -194,7 +194,8 @@ import '@/assets/styles.css';
           showFileName9: false,
           accent: 'american',
           voiceSpeed: 'speed1',
-          voiceType: 'femaleVoice'
+          voiceType: 'femaleVoice',
+          isAuthenticated: false
   }
 },
   methods: {
@@ -227,12 +228,120 @@ import '@/assets/styles.css';
         this.shareChatPopupConvoId = shareChatPopupConvoId;
       }
     },
-    togglePublicLinkCreatedPopup(publicLinkCreatedConvoId) {
+    replaceCharacters(input) {
+      let result = input.replace(/\+/g, '-');
+      result = result.replace(/\//g, '_');
+      return result;
+    },
+    async togglePublicLinkCreatedPopup(publicLinkCreatedConvoId) {
       if(this.showPublicLinkCreatedPopup) {
           this.showPublicLinkCreatedPopup = false;
           this.publicLinkCreatedConvoId = "";
       }
       else {
+        const response0 = await fetch("http://localhost:8006/getAIConvotitle/"+publicLinkCreatedConvoId);
+        if(!response0.ok) {
+          throw new Error('Network response not ok');
+        }
+
+        const encryptedConvotitle = await response0.text();
+
+        const response =  await fetch('http://localhost:8009/getDecryptedAIConvotitle/'+publicLinkCreatedConvoId, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            "convotitle": encryptedConvotitle
+          })
+        });
+        if(!response.ok) {
+          throw new Error('Network response not ok');
+        }
+        const convotitle = await response.text();
+
+        const response2 = await fetch('http://localhost:8009/addPublicAIConvo', {
+          method: "POST",
+          headers: {
+            "Content-Type":"application/json"
+          },
+          body: JSON.stringify({
+            "convotitle": convotitle,
+            "username": this.username,
+            "convoid": publicLinkCreatedConvoId
+          })
+        });
+        if(!response2.ok) {
+          throw new Error('Network response not ok');
+        }
+
+        const response3 = await fetch('http://localhost:8006/getAIMessagesWithSent/'+publicLinkCreatedConvoId)
+        if(!response3.ok) {
+          throw new Error('Network response not ok');
+        }
+        const fetchedMessages = await response3.json();
+
+        const response4 = await fetch('http://localhost:8009/decryptAIConvoWithSent/'+ publicLinkCreatedConvoId, {
+              method: "POST",
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                "encryptedConvoMessages": fetchedMessages
+              })
+            });
+        if(!response4.ok) {
+          throw new Error('Network response not ok');
+        }
+
+        const decryptedFetchedMessages = await response4.json();
+
+
+        const response5 = await fetch('http://localhost:8009/addPublicAIMessages/'+publicLinkCreatedConvoId, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            "messages": decryptedFetchedMessages
+          })
+        });
+        if(!response5.ok) {
+          throw new Error('Network response not ok');
+        }
+
+        const response6 = await fetch('http://localhost:8010/getFilesForConvo/'+publicLinkCreatedConvoId);
+        if(!response6.ok) {
+          throw new Error('Network response not ok');
+        }
+
+        const encryptedMessageFiles = await response6.json();
+
+        const response7 = await fetch('http://localhost:8010/decryptMessageFilesForConvo/'+publicLinkCreatedConvoId, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            "encryptedMessageFiles": encryptedMessageFiles
+          })
+        });
+
+        const messageFiles = await response7.json();
+
+        const response8 = await fetch('http://localhost:8010/addPublicMessageFiles/'+publicLinkCreatedConvoId, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            "messageFiles": messageFiles
+          })
+        });
+        if(!response8.ok){
+          throw new Error('Network response not ok');
+        }
+
         this.showShareChatPopup = false;
         this.shareChatPopupConvoId = "";
         this.showPublicLinkCreatedPopup = true;
@@ -262,19 +371,63 @@ import '@/assets/styles.css';
             }
             const fetchedMessages = await response.json();
 
-            const response2 = await fetch('http://localhost:8008/api/getFilesForConvo/'+convoId);
+            const response2 = await fetch('http://localhost:8009/decryptAIConvo/'+ convoId, {
+              method: "POST",
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                "encryptedConvoMessages": fetchedMessages
+              })
+            });
             if(!response2.ok) {
+              throw new Error('Network response not ok');
+            }
+
+            const decryptedFetchedMessages = await response2.json();
+          
+            const response3 = await fetch('http://localhost:8010/getFilesForConvo/'+convoId);
+            if(!response3.ok) {
                 throw new Error('Network response not ok');
             }
-            const messageFiles = await response2.json();
+            const encryptedMessageFiles = await response3.json();
 
-            for (let i = 0; i < fetchedMessages.length; i++) {
-                  let msg = fetchedMessages[i];
-                  let msgFiles = messageFiles.filter(x => x[1] === msg[1]);
+
+            let messageFiles = [];
+            
+            if(encryptedMessageFiles.length>0) {
+                  const response4 = await fetch('http://localhost:8010/decryptMessageFilesForConvo/'+convoId, {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json"
+                  },
+                  body: JSON.stringify({
+                    'encryptedMessageFiles': encryptedMessageFiles
+                  })
+                });
+                if(!response4.ok) {
+                  throw new Error('Network response not ok');
+                }
+                messageFiles = await response4.json();
+            }
+            for (let i = 0; i < decryptedFetchedMessages.length; i++) {
+                  let msg = decryptedFetchedMessages[i];
+                  let msgFiles = messageFiles.filter(x => x[3] === msg[1]);
                   for (let j = 0; j < msgFiles.length; j++) {
-                      const byteArray = this.base64ToUint8Array(msgFiles[j][2]);
-                      const blob = new Blob([byteArray]);
-                      const file = new File([blob], msgFiles[j][0], { type: msgFiles[j][3] });
+                      const byteCharacters = atob(msgFiles[j][0]);
+                      
+                      const byteNumbers = new Array(byteCharacters.length);
+
+                      for (let i = 0; i < byteCharacters.length; i++) {
+                          byteNumbers[i] = byteCharacters.charCodeAt(i);
+                      }
+                      
+                      const byteArray = new Uint8Array(byteNumbers);
+                      
+                      const blob = new Blob([byteArray], { type: msgFiles[j][2] });
+                      
+                      const file = new File([blob], msgFiles[j][1], { type: msgFiles[j][2] });
+            
                       msgFiles[j] = file;
                   }
                   if (msg[0].startsWith("AI to ")) {
@@ -310,7 +463,10 @@ import '@/assets/styles.css';
       setTimeout(()=> {
         this.messages.push(['AI', aiResponse, newAIMessageId, []]);
       }, 1000);
-      const options = {
+    
+
+      if(!this.temporaryChatMode) {
+        const options = {
               method: "POST",
               headers: {
                 'Content-Type': 'application/json'
@@ -320,41 +476,74 @@ import '@/assets/styles.css';
                 "convoid": newConvoId,
                 "convotitle": "new convo " + newConvoId,
               })
-      };
-
-      if(!this.temporaryChatMode) {
+        };
         if(this.selectedConvo==="") {
+            const response = await fetch('http://localhost:8009/encryptAIConvo', options);
+            if(!response.ok) {
+              throw new Error('Network response not ok');
+            }
+            const encryptedAIConvo = await response.json();
+
             this.newConvos = [[newConvoId, "new convo " + newConvoId, new Date()], ...this.newConvos];
             this.leftSidebarUniqueKey = newConvoId;
             this.selectedConvo = newConvoId;
-            const response = await fetch('http://localhost:8008/api/aiconvo', options);
-            if(!response.ok) {
+            options.body = JSON.stringify({
+              "convoid": newConvoId,
+              "username": encryptedAIConvo.username,
+              "convotitle": encryptedAIConvo.convotitle
+            })
+            const response2 = await fetch('http://localhost:8008/api/aiconvo', options);
+            if(!response2.ok) {
               throw new Error('Network response not ok');
             }
           }
           else {
             this.oldConvoBackToLife = [this.selectedConvo, new Date()];
           }
+        
       options.body = JSON.stringify({
-        "message": this.inputText,
-        "username": this.username,
+      "message": this.inputText,
+      "username": this.username,
+      "convoid": this.selectedConvo
+      });
+      const response3 = await fetch('http://localhost:8009/encryptAIMessage', options);
+      if(!response3.ok) {
+        throw new Error('Network response not ok');
+      }
+      const encryptedAIMessage = await response3.json();
+
+      options.body = JSON.stringify({
+        "message": encryptedAIMessage.message,
+        "username": encryptedAIMessage.username,
         "messageid": newMessageId,
         "convoid": this.selectedConvo,
         "sent": new Date()
       });
-      const response2 = await fetch('http://localhost:8008/api/aimessage', options);
-      if(!response2.ok) {
+      const response4 = await fetch('http://localhost:8008/api/aimessage', options);
+      if(!response4.ok) {
         throw new Error('Network response not ok');
       }
+
       options.body = JSON.stringify({
-        "message": aiResponse,
-        "username": "AI to " + this.username,
+      "message": aiResponse,
+      "username": "AI to " + this.username,
+      "convoid": this.selectedConvo
+      });
+      const response5 = await fetch('http://localhost:8009/encryptAIMessage', options);
+      if(!response5.ok) {
+        throw new Error('Network response not ok');
+      }
+      const encryptedAIResponse = await response5.json();
+
+      options.body = JSON.stringify({
+        "message": encryptedAIResponse.message,
+        "username": encryptedAIResponse.username,
         "messageid": newAIMessageId,
         "convoid": this.selectedConvo,
         "sent": new Date()
       });
-      const response3 = await fetch('http://localhost:8008/api/aimessage', options);
-      if(!response3.ok) {
+      const response6 = await fetch('http://localhost:8008/api/aimessage', options);
+      if(!response6.ok) {
         throw new Error('Network response not ok');
         }
 
@@ -364,15 +553,34 @@ import '@/assets/styles.css';
           this.files.forEach((file, index) => {
             formData.append(`file${index}`, file);
           });
-
-          const response4 = await fetch('http://localhost:8008/api/sendFilesWithMessage', {
+          const response4 = await fetch('http://localhost:8010/encryptMessageFiles/'+this.selectedConvo, {
             method: 'POST',
             body: formData
           });
-          if(!response4.ok) {
+          if(!response4.ok){
             throw new Error('Network response not ok');
           }
-          const response4Data = await response4.json();
+          const emf = await response4.json();
+          const encryptedMessageFiles = emf['encryptedFiles'];
+          const encryptedMessageFilesWithDetails = [];
+          for(let i=0; i<this.files.length; i++){
+            encryptedMessageFilesWithDetails.push([encryptedMessageFiles[i], this.files[i].name, this.files[i].type]);
+          }
+  
+          const response5 = await fetch('http://localhost:8010/sendFilesWithMessage', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              emfwd: encryptedMessageFilesWithDetails,
+              messageid: newMessageId,
+              convoid: this.selectedConvo
+            })
+          });
+          if(!response5.ok) {
+            throw new Error('Network response not ok');
+          }
       }
     }
   
@@ -474,7 +682,80 @@ import '@/assets/styles.css';
     hideFile9() {
       this.showFileName9 = false;
     },
-    
+    async authenticateUser(username) {
+          const response = await fetch('http://localhost:8003/cookies/authenticateUser/'+username, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include'
+          });
+          if(!response.ok) {
+              throw new Error('Network response not ok');
+          }
+          const isAuth = await response.json();
+          if(isAuth) {
+            this.isAuthenticated = true;
+            return;
+          }
+          else {
+            const data = {'username':username};
+            const options = {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data),
+                credentials: 'include',
+            }
+            const response2 = await fetch('http://localhost:8003/cookies/updateAuthToken', options);
+            if(!response2.ok) {
+                throw new Error('Network response not ok');
+            }
+            const response2Data = await response2.text();
+            if(response2Data === "Cookie updated successfully") {
+                const response3 = await fetch('http://localhost:8003/cookies/authenticateUser/'+username, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include'
+                });
+                if(!response3.ok) {
+                    throw new Error('Network response not ok');
+                }
+                const isAuth = await response.json();
+                if(isAuth) {
+                    this.isAuthenticated = true;
+                    return;
+                }
+            }
+            else if(response2Data === "Invalid refresh token for username") {
+                const response4 = await fetch('http://localhost:8003/cookies/updateRefreshToken', options);
+                if(!response4.ok) {
+                    throw new Error('Network response not ok');
+                }
+                const response4Data = await response4.text();
+                if(response4Data === "Cookie updated successfully"){
+                    const response5 = await fetch('http://localhost:8003/cookies/authenticateUser/'+username, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        credentials: 'include'
+                    });
+                    if(!response5.ok) {
+                        throw new Error('Network response not ok');
+                    }
+                    const isAuth = await response.json();
+                    if(isAuth) {
+                        this.isAuthenticated = true;
+                        return;
+                      }
+                    }
+                  }
+                }
+    }
   },
   computed: {
     displayOpenSidebarText() {
@@ -529,16 +810,29 @@ import '@/assets/styles.css';
   watch: {
     '$route.params': {
       immediate: true,
-      handler(newParams) {
+      async handler(newParams) {
         if(this.numberOfTimesRouteParamsWatched==0) {
           this.numberOfTimesRouteParamsWatched++;
         }
         else if(typeof newParams.username !== 'undefined') {
-          this.username = newParams.username;
-          localStorage.setItem('defaultUsername', newParams.username);
+          await this.authenticateUser(newParams.username);
+          if(this.isAuthenticated) {
+              this.username = newParams.username;
+              localStorage.setItem('defaultUsername', newParams.username);
+          }
+          else {
+            window.location.href = "http://localhost:8000/login";
+          }
         }
         else if(localStorage.getItem('defaultUsername')) {
-            this.username = localStorage.getItem('defaultUsername');
+            await this.authenticateUser(localStorage.getItem('defaultUsername'));
+            if(this.isAuthenticated) {
+                this.username = localStorage.getItem('defaultUsername');
+            }
+            else {
+              window.location.href = "http://localhost:8000/login";
+            }
+            
         }
       }
     }

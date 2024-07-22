@@ -27,6 +27,10 @@ voiceSpeed: {
 voiceType: {
     type: String,
     required: true
+},
+convoid: {
+    type: String,
+    required: true
 }
 })
 </script>
@@ -44,14 +48,14 @@ voiceType: {
     </div>
     </div>
 
-    <div v-if="!editMode" :style="{display:'flex', justifyContent:'end', alignItems:'center', fontSize:'1.3em', color:'black', gap:'0.4em'}">
+    <div class="userMessage" v-if="!editMode" :style="{display:'flex', justifyContent:'end', alignItems:'center', fontSize:'1.3em', color:'black', gap:'0.4em'}">
     <img @click="deleteMessage" :src="deleteMessageIcon" :style="{objectFit:'contain', cursor:'pointer', height:'0.5em', width:'0.5em'}"/>
     <img @click="toggleEditMode" :src="editIcon" :style="{objectFit:'contain', cursor:'pointer', height:'1.3em', width:'1.3em'}"/>
     <p :style="{backgroundColor:'#ededed', padding:'0.5em 0.5em', borderRadius:'1em', fontSize:'0.85em', wordBreak: 'break-all',
     overflowWrap: 'break-word', maxWidth:'65%'}">{{ messageDisplayed }}</p>
     </div>
 
-    <div v-if="editMode" :style="{width:'100%', backgroundColor:'#f7f7f7', borderRadius:'6px', fontFamily:'Arial', padding: '0.9em 0.9em'}">
+    <div class="userMessage" v-if="editMode" :style="{width:'100%', backgroundColor:'#f7f7f7', borderRadius:'6px', fontFamily:'Arial', padding: '0.9em 0.9em'}">
     <textarea ref="editMessage" v-model="messageDisplayed" :style="{fontFamily:'Arial', width:'95%', backgroundColor:'#f7f7f7', outline:'none', border:'none',
     fontSize:'1.1em'}"/>
     <div :style="{display:'flex', justifyContent:'end', gap:'0.35em'}">
@@ -66,7 +70,7 @@ voiceType: {
     </template>
 
     <template v-if="!senderIsUser && !isDeleted">
-    <div :style="{display:'flex', flexDirection:'column', alignItems:'start', justifyContent:'start', fontSize:'1.3em', color:'black',
+    <div class="aiReply" :style="{display:'flex', flexDirection:'column', alignItems:'start', justifyContent:'start', fontSize:'1.3em', color:'black',
     position:'relative'}">
     <p :style="{fontSize:'0.85em'}">{{ messageDisplayed }}</p>
     <img :src="chatgptIcon" :style="{position:'absolute', top:'-10%', left:'-5.4%', objectFit:'contain', height:'2em', width:'2em', zIndex:'10',
@@ -90,10 +94,11 @@ import chatgptIcon from '@/assets/images/chatgptIcon.png';
 import copyPasteIcon from '@/assets/images/copyPasteIcon.png';
 import editIcon from '@/assets/images/editIcon.png';
 import fileImage from '@/assets/images/fileImage.png';
+import deleteMessageIcon from '@/assets/images/grayTrashIcon.png';
 import readAloudIcon from '@/assets/images/readAloudIcon.png';
 import regenerateIcon from '@/assets/images/regenerateIcon.png';
-import deleteMessageIcon from '@/assets/images/grayTrashIcon.png';
 import stopReadAloudIcon from '@/assets/images/stopReadAloudIcon.png';
+import '@/assets/styles.css';
 
 export default {
     data() {
@@ -150,7 +155,7 @@ export default {
         async regenerateMessage() {
             this.messageDisplayed = "Message has been regenerated.";
             const options = {
-                    method: 'PATCH',
+                    method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
@@ -158,8 +163,21 @@ export default {
                         'message': this.messageDisplayed
                     })
                 };
-            const response = await fetch('http://localhost:8008/api/aimessage/'+this.messageId, options);
+            const response = await fetch('http://localhost:8009/encryptAIMessageForEditing/' + this.convoid, options);
+
             if(!response.ok) {
+                throw new Error('Network response not ok');
+            }
+
+            const encryptedMessage = await response.text();
+
+            options.method = 'PATCH';
+            options.body = JSON.stringify({
+                'message': encryptedMessage
+            });
+            
+            const response2 = await fetch('http://localhost:8008/api/aimessage/'+this.messageId, options);
+            if(!response2.ok) {
                 throw new Error('Network response not ok');
             }
         },
@@ -170,17 +188,31 @@ export default {
             }
             else {
                 const options = {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        'message': this.messageDisplayed
-                    })
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    'message': this.messageDisplayed
+                })
                 };
-                
-                const response = await fetch('http://localhost:8008/api/aimessage/'+this.messageId, options);
+
+                const response = await fetch('http://localhost:8009/encryptAIMessageForEditing/' + this.convoid, options);
+
                 if(!response.ok) {
+                    throw new Error('Network response not ok');
+                }
+
+                const encryptedMessage = await response.text();
+
+                options.method = "PATCH";
+                options.body = JSON.stringify({
+                        'message': encryptedMessage
+                });
+        
+                
+                const response2 = await fetch('http://localhost:8008/api/aimessage/'+this.messageId, options);
+                if(!response2.ok) {
                     throw new Error('Network response not ok');
                 }
                 

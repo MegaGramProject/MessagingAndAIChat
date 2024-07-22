@@ -16,7 +16,7 @@ togglePublicLinkCreatedPopup: {
 </script>
 
 <template>
-<div :style="{backgroundColor:'white', boxShadow:'0 4px 8px 0 rgba(0, 0, 0, 0.2)', position:'absolute', left:'42%', top:'37%',
+<div id="shareChatPopup" :style="{backgroundColor:'white', boxShadow:'0 4px 8px 0 rgba(0, 0, 0, 0.2)', position:'absolute', left:'42%', top:'37%',
 width:'30em', height:'16em', padding:'1em 0.4em', borderRadius:'5px', zIndex:'10'}">
 <p :style="{fontWeight:'bold'}">Share public link to chat</p>
 <hr :style="{color:'lightgray', marginTop:'1em'}">
@@ -31,13 +31,14 @@ display:'flex', justifyContent:'space-between', alignItems:'center'}">
         <span :style="{fontWeight:'bold'}">Create link</span>
     </button>
 </div>
-<img @click="toggleShareChatPopup(convoId)" :src="xIcon" :style="{height:'3em', width:'3em', position:'absolute', top:'0%', left:'87%', cursor:'pointer'}"/>
+<img class="iconToBeAdjustedForDarkMode" @click="toggleShareChatPopup(convoId)" :src="xIcon" :style="{height:'3em', width:'3em', position:'absolute', top:'0%', left:'87%', cursor:'pointer'}"/>
 </div>
 </template>
 
 
 <script>
-import xIcon from '@/assets/images/xIcon.png';
 import createLinkIcon from '@/assets/images/createLinkIcon.png';
+import xIcon from '@/assets/images/xIcon.png';
+import '@/assets/styles.css';
 
 </script>

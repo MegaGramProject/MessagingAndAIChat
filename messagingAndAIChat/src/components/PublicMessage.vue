@@ -23,7 +23,7 @@ messageFiles: {
 <template>
 
     <template v-if="senderIsUser">
-    <div :style="{display:'flex', flexDirection:'column', alignItems:'end', gap:'1.4em'}">
+    <div class="userMessage" :style="{display:'flex', flexDirection:'column', alignItems:'end', gap:'1.4em'}">
     <div v-if="messageFileImages.length>0" v-for="(fileImage, index) in messageFileImages" :key="index" :style="{display:'flex', flexDirection:'column'}">
     <div :style="{display: 'flex', alignItems:'center', gap:'1.6em'}">
     <img @click="downloadFile(messageFiles[index])" :src="fileImage" :style="{width:'3em', height:'3em', objectFit:'contain', cursor:'pointer'}"/>
@@ -37,7 +37,7 @@ messageFiles: {
 
 
     <template v-if="!senderIsUser">
-    <div :style="{display:'flex', flexDirection:'column', alignItems:'start', justifyContent:'start', fontSize:'1.3em', color:'black',
+    <div class="aiReply" :style="{display:'flex', flexDirection:'column', alignItems:'start', justifyContent:'start', fontSize:'1.3em', color:'black',
     position:'relative'}">
     <p :style="{fontSize:'1em'}">{{ message }}</p>
     <img :src="chatgptIcon" :style="{position:'absolute', top:'-10%', left:'-5.4%', objectFit:'contain', height:'2em', width:'2em', zIndex:'10',
@@ -50,6 +50,7 @@ messageFiles: {
 <script>
 import chatgptIcon from '@/assets/images/chatgptIcon.png';
 import fileImage from '@/assets/images/fileImage.png';
+import '@/assets/styles.css';
 
 
 export default {

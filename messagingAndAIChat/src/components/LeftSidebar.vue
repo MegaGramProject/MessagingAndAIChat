@@ -42,7 +42,7 @@ oldConvoBackToLife: {
 
 
 <template>
-<div :style="{position:'fixed', width:'16em', top:'0%', left:'0%', height:'100%',
+<div id="leftsidebar" :style="{position:'fixed', width:'16em', top:'0%', left:'0%', height:'100%',
 display:'flex', flexDirection:'column', backgroundColor:'#f7f7f7', padding: '1em 0.7em', overflowY:'scroll'}">
 <div :style="{display:'flex', justifyContent:'space-between'}">
 <img @click="toggleLeftSidebar()" @contextmenu.prevent="disableRightClick" :src="toggleSidebarIcon" :style="{cursor:'pointer', height:'2.2em', width:'2.2em',
@@ -73,32 +73,32 @@ padding: '0.4em 0.4em', marginLeft:'13.5em', display: displayShowNewChatText}">N
 </template>
 
 <template v-if="convosToday.length>0 && newConvosState.length==0">
-    <PastConvosGroup :timeOfConvoGroup="new Date(convosToday[0][2])" :selectedConvo="selectedConvo" :convoTitles="convosToday"
+    <PastConvosGroup :timeOfConvoGroup="new Date(convosToday[0][3])" :selectedConvo="selectedConvo" :convoTitles="convosToday"
     :selectNewConvo="selectNewConvo" :toggleShareChatPopup="toggleShareChatPopup"/>
 </template>
 
 <template v-if="convosYesterday.length>0">
-    <PastConvosGroup :timeOfConvoGroup="new Date(convosYesterday[0][2])" :selectedConvo="selectedConvo" :convoTitles="convosYesterday" :selectNewConvo="selectNewConvo"
+    <PastConvosGroup :timeOfConvoGroup="new Date(convosYesterday[0][3])" :selectedConvo="selectedConvo" :convoTitles="convosYesterday" :selectNewConvo="selectNewConvo"
     :toggleShareChatPopup="toggleShareChatPopup"/>
 </template>
 
 <template v-if="convosThisWeek.length>0">
-    <PastConvosGroup :timeOfConvoGroup="new Date(convosThisWeek[0][2])" :selectedConvo="selectedConvo" :convoTitles="convosThisWeek" :selectNewConvo="selectNewConvo"
+    <PastConvosGroup :timeOfConvoGroup="new Date(convosThisWeek[0][3])" :selectedConvo="selectedConvo" :convoTitles="convosThisWeek" :selectNewConvo="selectNewConvo"
     :toggleShareChatPopup="toggleShareChatPopup"/>
 </template>
 
 <template v-if="convosThisMonth.length>0">
-    <PastConvosGroup :timeOfConvoGroup="new Date(convosThisMonth[0][2])" :selectedConvo="selectedConvo" :convoTitles="convosThisMonth" :selectNewConvo="selectNewConvo"
+    <PastConvosGroup :timeOfConvoGroup="new Date(convosThisMonth[0][3])" :selectedConvo="selectedConvo" :convoTitles="convosThisMonth" :selectNewConvo="selectNewConvo"
     :toggleShareChatPopup="toggleShareChatPopup"/>
 </template>
 
 <template v-if="convosThisYear.length>0">
-    <PastConvosGroup :timeOfConvoGroup="new Date(convosThisYear[0][2])" :selectedConvo="selectedConvo" :convoTitles="convosThisYear" :selectNewConvo="selectNewConvo"
+    <PastConvosGroup :timeOfConvoGroup="new Date(convosThisYear[0][3])" :selectedConvo="selectedConvo" :convoTitles="convosThisYear" :selectNewConvo="selectNewConvo"
     :toggleShareChatPopup="toggleShareChatPopup"/>
 </template>
 
 <template v-if="convosBeforeThisYear.length>0">
-    <PastConvosGroup :timeOfConvoGroup="new Date(convosBeforeThisYear[0][2])" :selectedConvo="selectedConvo" :convoTitles="convosBeforeThisYear" :selectNewConvo="selectNewConvo"
+    <PastConvosGroup :timeOfConvoGroup="new Date(convosBeforeThisYear[0][3])" :selectedConvo="selectedConvo" :convoTitles="convosBeforeThisYear" :selectNewConvo="selectNewConvo"
     :toggleShareChatPopup="toggleShareChatPopup"/>
 </template>
 
@@ -178,14 +178,28 @@ methods: {
     },
 
     async fetchAIConvos(username){
-        const response = await fetch('http://localhost:8006/getAIConvos/'+username);
+        const response = await fetch('http://localhost:8006/getAllAIConvos');
         if(!response.ok) {
             throw new Error('Network response not ok');
         }
-        const aiConvos = await response.json();
-        aiConvos.sort((a, b) => new Date(b[2]) - new Date(a[2]));
+        const allAIConvos = await response.json();
+        const response2 = await fetch('http://localhost:8009/getAllAIConvos/'+username, {
+            method: "POST",
+            headers: {
+                'Content-Type':'application/json'
+            },
+            body: JSON.stringify({
+                aiConvosOfAllUsers: allAIConvos
+            })
+        });
+        if(!response2.ok) {
+            throw new Error('Network response not ok');
+        }
+
+        const aiConvos = await response2.json();
+        aiConvos.sort((a, b) => new Date(b[3]) - new Date(a[3]));
         for(let convo of aiConvos) {
-            const formattedDate = this.formattedDate(new Date(convo[2]));
+            const formattedDate = this.formattedDate(new Date(convo[3]));
             if(formattedDate==="Today") {
                 this.convosToday.push(convo);
             }
@@ -201,7 +215,7 @@ methods: {
             else if(formattedDate==="This year") {
                 this.convosThisYear.push(convo);
             }
-            else {
+            else if(formattedDate==="Before this year"){
                 this.convosBeforeThisYear.push(convo);
             }
         }
@@ -218,7 +232,6 @@ computed: {
 },
 watch: {
     newConvos(newVal) {
-        console.log(newVal);
         this.newConvosState = [];
         for(let i = 0; i < newVal.length; i++) {
             this.newConvosState.push(newVal[i]);

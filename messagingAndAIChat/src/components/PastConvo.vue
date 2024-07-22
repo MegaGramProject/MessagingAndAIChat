@@ -25,18 +25,19 @@ toggleShareChatPopup: {
 
 <template>
 <template v-if="!isDeleted">
-<div class="hoverableElement" @click="selectNewConvo(convoId)" :style="{width:'100%', borderRadius:'7px', cursor:'pointer', display:'flex',
+<div class="hoverableElement" :style="{width:'100%', borderRadius:'7px', cursor:'pointer', display:'flex',
 alignItems:'center', justifyContent:'space-between', height:'2.3em', backgroundColor: displayBackgroundColor, position:'relative'}">
 <template v-if="!isRenaming">
-<p :style="{fontSize:'0.85em', color:'gray'}">{{convoTitleState}}</p>
+<p @click="selectNewConvo(convoId)" :style="{fontSize:'0.85em', color:'gray'}">{{convoTitleState}}</p>
 </template>
 <template v-if="isRenaming">
 <textarea v-model="convoTitleState" :style="{fontFamily:'Arial', width:'100%', height:'70%'}" @keyup.enter="toggleRenaming"></textarea>
 </template>
-<img @click="toggleOptions" @mouseover="toggleOptionsText" @mouseleave="toggleOptionsText" :src="threeHorizontalDots" :style="{height:'2em', width:'2em'}">
+<img class="iconToBeAdjustedForDarkMode" @click="toggleOptions" @mouseover="toggleOptionsText" @mouseleave="toggleOptionsText" :src="threeHorizontalDots" :style="{height:'2em', width:'2em'}">
 <p :style="{position:'absolute', top:'-40%', left:'75%', backgroundColor:'black', color:'white', width:'5em', borderRadius:'3px',
 paddingLeft:'0.6em', fontSize:'0.77em', display: displayOptionsText}">Options</p>
-<div :style="{position:'absolute', left:'96%', top:'100%', backgroundColor:'white', borderRadius:'5px',
+
+<div class="optionsPopup" :style="{position:'absolute', left:'96%', top:'100%', backgroundColor:'white', borderRadius:'5px',
 display:'flex', flexDirection:'column', alignItems:'center', height:'6.4em', padding:'0.35em 0.2em', display: displayOptions,
 boxShadow: '0 4px 8px 0 rgba(0, 0, 0, 0.2)', fontSize:'0.8em'}">
 
@@ -59,11 +60,11 @@ boxShadow: '0 4px 8px 0 rgba(0, 0, 0, 0.2)', fontSize:'0.8em'}">
 
 
 <script>
-    import threeHorizontalDots from '@/assets/images/threeHorizontalDots.png';
-    import shareConvoIcon from '@/assets/images/shareConvoIcon.png';
-    import renameConvoIcon from '@/assets/images/renameConvoIcon.png';
     import removeConvoIcon from '@/assets/images/removeConvoIcon.png';
-    import '@/assets/styles.css';
+import renameConvoIcon from '@/assets/images/renameConvoIcon.png';
+import shareConvoIcon from '@/assets/images/shareConvoIcon.png';
+import threeHorizontalDots from '@/assets/images/threeHorizontalDots.png';
+import '@/assets/styles.css';
     export default {
     data() {
         return {
@@ -86,16 +87,29 @@ boxShadow: '0 4px 8px 0 rgba(0, 0, 0, 0.2)', fontSize:'0.8em'}">
         async toggleRenaming() {
             if(this.isRenaming) {
                 const options = {
-                    method: 'PATCH',
+                    method: "POST",
                     headers: {
-                        'Content-Type': 'application/json'
+                        "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
-                        "convotitle": this.convoTitleState
+                        'convotitle': this.convoTitleState
                     })
                 };
-                const response = await fetch('http://localhost:8008/api/aiconvo/'+this.convoId, options);
+                const response = await fetch('http://localhost:8009/encryptAIConvoTitleForEditing/' + this.convoId, options);
+
                 if(!response.ok) {
+                    throw new Error('Network response not ok');
+                }
+
+                const encryptedConvotitle = await response.text();
+
+                options.method = "PATCH";
+                options.body = JSON.stringify({
+                        'convotitle': encryptedConvotitle
+                });
+
+                const response2 = await fetch('http://localhost:8008/api/aiconvo/'+this.convoId, options);
+                if(!response2.ok) {
                     throw new Error('Network response not ok');
                 }
                 this.isRenaming = false;
@@ -109,8 +123,12 @@ boxShadow: '0 4px 8px 0 rgba(0, 0, 0, 0.2)', fontSize:'0.8em'}">
             const options = {
                 method: 'DELETE'
             }
-            const response = await fetch('http://localhost:8008/api/aiconvo/'+this.convoId, options);
+            const response = await fetch('http://localhost:8009/destroyAIConvoKey/'+this.convoId, options);
             if(!response.ok) {
+                throw new Error('Network response not ok');
+            }
+            const response2 = await fetch('http://localhost:8008/api/aiconvo/'+this.convoId, options);
+            if(!response2.ok) {
                 throw new Error('Network response not ok');
             }
 

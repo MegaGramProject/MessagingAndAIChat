@@ -12,7 +12,7 @@ togglePublicLinkCreatedPopup: {
 </script>
 
 <template>
-<div :style="{backgroundColor:'white', boxShadow:'0 4px 8px 0 rgba(0, 0, 0, 0.2)', position:'absolute', left:'36%', top:'25%',
+<div id="publicLinkCreatedDiv" :style="{backgroundColor:'white', boxShadow:'0 4px 8px 0 rgba(0, 0, 0, 0.2)', position:'absolute', left:'36%', top:'25%',
 width:'31em', height:'25em', padding:'1em 0.9em', borderRadius:'5px', zIndex:'10'}">
 <p :style="{fontWeight:'bold'}">Public Link Created</p>
 <hr :style="{color:'lightgray', marginTop:'1em'}">
@@ -54,6 +54,7 @@ import linkedinIcon from '@/assets/images/linkedinIcon.png';
 import facebookIcon from '@/assets/images/facebookIcon.png';
 import redditIcon from '@/assets/images/redditIcon.png';
 import twitterIcon from '@/assets/images/twitterIcon.png';
+import '@/assets/styles.css';
 
 
 export default {

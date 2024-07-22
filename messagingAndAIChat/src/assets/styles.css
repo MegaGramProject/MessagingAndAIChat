@@ -6,3 +6,76 @@ select {
     border: none;
     outline: none;
 }
+
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #333333 !important;
+    }
+
+    #leftsidebar {
+        background-color: #333333 !important;
+    }
+
+    .hoverableElement {
+        color: white !important;
+        background-color: #333333 !important;
+    }
+
+    textarea {
+        background-color: black !important;
+        color: white !important;
+    }
+
+    #inputDiv {
+        background-color: black !important;
+        color: white !important;
+        border-color: black !important;
+    }
+
+    .messagesDiv {
+        background-color: #333333 !important;
+    }
+
+    #megagramAIDropdown {
+        background-color: #333333 !important;
+        color: white !important;
+    }
+
+    #leftsidebar {
+        background-color: black !important;
+        color: white !important;
+    }
+
+    .optionsPopup {
+        background-color: #333333 !important;
+        color: white !important;
+    }
+
+    .iconToBeAdjustedForDarkMode {
+        filter: brightness(5) contrast(0);
+    }
+
+    #shareChatPopup {
+        background-color: #333333 !important;
+        color: white !important;
+    }
+
+    .userMessage p {
+        background-color: black !important;
+        color: white !important;
+    }
+
+    .aiReply {
+        color: white !important;
+    }
+
+    #publicLinkCreatedDiv {
+        background-color: #333333 !important;
+        color: white !important;
+    }
+
+    #publicMessagesDiv {
+        background-color: #333333 !important;
+        color: white !important;
+    }
+}

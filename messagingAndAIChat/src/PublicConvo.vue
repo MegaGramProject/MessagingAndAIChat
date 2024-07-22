@@ -30,7 +30,7 @@ export default {
         convoid: "",
         convotitle: "Convo not found",
         convodates: "N/A",
-        fetched: false
+        numTimesRouteParamsWatched: 0
     }
 },
 methods: {
@@ -38,37 +38,51 @@ methods: {
         window.location.href = "http://localhost:8007/aiChat/";
     },
     async fetchMessagesForConvo(convoid) {
-        const response = await fetch('http://localhost:8009/getPublicConvoMessages/'+convoid);
-        if(!response.ok) {
-            throw new Error('Network response not ok');
-        }
-        const fetchedMessages = await response.json();
+        try {
+            const response0 = await fetch('http://localhost:8009/getPublicAIConvoTitle/'+convoid);
+            if(!response0.ok) {
+                throw new Error('Network not ok');
+            }
+            const convotitle =  await response0.text();
+            this.convotitle = convotitle;
+            const response = await fetch('http://localhost:8009/getAllPublicAIMessages/'+convoid);
+            if(!response.ok) {
+                throw new Error('Network response not ok');
+            }
+            const fetchedMessages = await response.json();
 
-        if (fetchedMessages !== "no public convo found") {
-            const date1 = fetchedMessages[0][3];
-            const date2 = fetchedMessages[fetchedMessages.length-1][3];
+            const date1 = fetchedMessages[0].sent;
+            const date2 = fetchedMessages[fetchedMessages.length-1].sent;
             this.convodates = `${this.formatDate(date1)} to ${this.formatDate(date2)}`;
-            const response2 = await fetch('http://localhost:8009/getPublicConvoFiles/'+convoid);
+            const response2 = await fetch('http://localhost:8010/getFilesForPublicConvo/'+convoid);
             if(!response2.ok) {
                 throw new Error('Network response not ok');
             }
             const messageFiles = await response2.json();
             for (let i = 0; i < fetchedMessages.length; i++) {
                     let msg = fetchedMessages[i];
-                    let msgFiles = messageFiles.filter(x => x[1] === msg[1]);
+                    let msgFiles = messageFiles.filter(x => x['messageId'] === msg['messageid']);
                     for (let j = 0; j < msgFiles.length; j++) {
-                        const byteArray = this.base64ToUint8Array(msgFiles[j][2]);
+                        const byteArray = this.base64ToUint8Array(msgFiles[j]['fileBase64String']);
                         const blob = new Blob([byteArray]);
-                        const file = new File([blob], msgFiles[j][0], { type: msgFiles[j][3] });
+                        const file = new File([blob], msgFiles[j]['fileName'], { type: msgFiles[j]['fileType'] });
                         msgFiles[j] = file;
                     }
-                    if (msg[0].startsWith("AI to ")) {
-                        this.messages.push(["AI", msg[2], msg[1], msgFiles]);
+
+                    if (msg['username'].startsWith("AI to ")) {
+                        this.messages.push(["AI", msg['message'], msg['messageid'], msgFiles]);
                     } else {
-                        this.messages.push(["user", msg[2], msg[1], msgFiles]);
+                        this.messages.push(["user", msg['message'], msg['messageid'], msgFiles]);
                     }
             }
+            localStorage.setItem('defaultConvo', convoid);
+
         }
+        catch {
+            this.convotitle = "Convo not found";
+            this.convodates = "N/A";
+        }
+    
     },
     formatDate(dateString) {
         const options = { year: 'numeric', month: 'long', day: 'numeric' };
@@ -83,24 +97,31 @@ methods: {
             bytes[i] = binaryString.charCodeAt(i);
         }
         return bytes;
-  }
+}
 },
 watch: {
     '$route.params': {
         immediate: true,
         handler(newParams) {
-        if(!this.fetched && typeof newParams.convoid !== 'undefined') {
-            this.fetched = true;
-            this.convoid = newParams.convoid;
-            localStorage.setItem('defaultConvo', newParams.convoid);
-            this.fetchMessagesForConvo(this.convoid);
-        }
-        else if(!this.fetched && localStorage.getItem('defaultConvo')) {
-            this.fetched = true;
-            this.convoid = localStorage.getItem('defaultConvo');
-            this.fetchMessagesForConvo(this.convoid);
+            if(this.numTimesRouteParamsWatched==0) {
+                this.numTimesRouteParamsWatched++;
             }
-        }
+            else {
+                if(typeof newParams.convoid !== 'undefined') {
+                    this.convoid = newParams.convoid;
+                    this.fetchMessagesForConvo(this.convoid);
+                }
+                else if(localStorage.getItem('defaultConvo')) {
+                
+                    this.convoid = localStorage.getItem('defaultConvo');
+                    this.fetchMessagesForConvo(this.convoid);
+                    }
+                else {
+                    this.convotitle = "Convo not found";
+                    this.convodates = "N/A";
+                }
+                }
+            }
     }
 }
 }
